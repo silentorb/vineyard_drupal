@@ -1,0 +1,49 @@
+<?php
+/*
+require_once dirname(__FILE__).'/lib/php/Boot.class.php';
+
+metahub_Main::main();
+*/
+
+function vineyard_menu() {
+//  $items['vineyard/model.json'] = array(
+//    'title' => 'Vineyard Model',
+//    'page callback' => 'ground_php_model',
+//    'access callback' => TRUE,
+//    'type' => MENU_CALLBACK,
+//  );
+  $items['vineyard/query'] = array(
+    'title' => 'Ground Get',
+    'page callback' => 'vineyard_query',
+    'page arguments' => array('query'),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['vineyard/update'] = array(
+    'title' => 'Ground Update',
+    'page callback' => 'vineyard_update',
+    'page arguments' => array('update'),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+function vineyard_permission() {
+  return array(
+    'debug vineyard' => array(
+      'title' => 'Debug Vineyard',
+      'description' => 'Allows user to see additional error information in Vineyard service responses.  '
+        . 'This information can be a security vulnerability and is only intended for developers.'
+    )
+  );
+}
+
+function vineyard_service($action) {
+  $vineyard = new Vineyard();
+  $vineyard->service($action);
+}
+
+function vineyard_update() {
+
+}

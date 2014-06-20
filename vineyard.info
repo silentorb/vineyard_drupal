@@ -1,0 +1,7 @@
+name = Vineyard
+description = Data-driven Framework for Webservices
+core = 7.x
+package = Vineyard
+php = 5.3
+
+files[] = inc/Vineyard.inc
