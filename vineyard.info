@@ -5,3 +5,4 @@ package = Vineyard
 php = 5.3
 
 files[] = inc/Vineyard.inc
+files[] = inc/Drupal_Data.inc

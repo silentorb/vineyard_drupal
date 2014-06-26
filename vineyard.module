@@ -14,14 +14,14 @@ function vineyard_menu() {
 //  );
   $items['vineyard/query'] = array(
     'title' => 'Ground Get',
-    'page callback' => 'vineyard_query',
+    'page callback' => 'vineyard_service',
     'page arguments' => array('query'),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
   $items['vineyard/update'] = array(
     'title' => 'Ground Update',
-    'page callback' => 'vineyard_update',
+    'page callback' => 'vineyard_service',
     'page arguments' => array('update'),
     'access callback' => 'user_is_logged_in',
     'type' => MENU_CALLBACK,
@@ -40,10 +40,8 @@ function vineyard_permission() {
 }
 
 function vineyard_service($action) {
+  require_once drupal_get_path('module', 'vineyard') . '/lib/ground/php/Boot.class.php';
   $vineyard = new Vineyard();
+  module_invoke_all('init_vineyard', $vineyard);
   $vineyard->service($action);
-}
-
-function vineyard_update() {
-
 }
