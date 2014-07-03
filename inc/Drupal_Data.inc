@@ -76,6 +76,10 @@ class Drupal_Data implements ground_IStorage {
   }
 
   function post_process($node, $query) {
+    if (isset($query->expansions) && in_array('children', $query->expansions)) {
+      $sql = 'SELECT link_path FROM `menu_links` where plid = :plid';
+    }
+
     if (isset($node->nodehierarchy_menu_links) && count($node->nodehierarchy_menu_links) > 0) {
       $tree = $node->nodehierarchy_menu_links[0];
       $sql = 'SELECT link_path FROM `menu_links` where plid = :plid';
