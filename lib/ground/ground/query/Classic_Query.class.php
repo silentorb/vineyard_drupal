@@ -8,11 +8,13 @@ class ground_query_Classic_Query {
 	public $filters;
 	public $sorts;
 	public $pager;
+	public $expansions;
 	public function extend($source, $schema) {
 		$this->trellis = $schema->get_trellis($source->trellis);
 		$this->filters = $source->filters;
 		$this->sorts = $source->sorts;
 		$this->pager = $source->pager;
+		$this->expansions = $source->expansions;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

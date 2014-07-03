@@ -23,6 +23,9 @@ class Vineyard {
     if (!isset($source->sorts))
       $source->sorts = null;
 
+    if (!isset($source->expansions))
+      $source->expansions = null;
+
     $this->ground->run_query($source, $result);
   }
 

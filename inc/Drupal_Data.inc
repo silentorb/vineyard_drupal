@@ -64,6 +64,7 @@ class Drupal_Data implements ground_IStorage {
     $nodes = entity_load('node', $nids);
 
     foreach ($nodes as $node) {
+      $this->post_process($node, $query);
       $response->objects[] = $node;
     }
 
@@ -73,4 +74,13 @@ class Drupal_Data implements ground_IStorage {
   function run_update($update, $response) {
 
   }
+
+  function post_process($node, $query) {
+    if (isset($node->nodehierarchy_menu_links)) {
+      $sql = 'SELECT link_path FROM `menu_links` where plid = :plid';
+      $rows = db_query($sql, array('plid'=> $node->mlid))->fetchAll();
+      $node->children = $rows;
+    }
+  }
+
 }
