@@ -7,14 +7,30 @@ class ground_query_Classic_Query {
 	public $trellis;
 	public $filters;
 	public $sorts;
-	public $pager;
+	public $range;
 	public $expansions;
-	public function extend($source, $schema) {
-		$this->trellis = $schema->get_trellis($source->trellis);
+	public $properties;
+	public function extend($source, $schema, $namespace) {
+		$this->trellis = $schema->get_trellis($source->trellis, $namespace, null);
 		$this->filters = $source->filters;
 		$this->sorts = $source->sorts;
-		$this->pager = $source->pager;
+		if($source->properties !== null) {
+			$this->properties = $source->properties;
+		}
 		$this->expansions = $source->expansions;
+		if(_hx_field($source, "range") !== null) {
+			$this->range = $source->range;
+		} else {
+			if(_hx_field($source, "pager") !== null) {
+				$this->range = _hx_anonymous(array());
+				if($source->pager->offset !== null) {
+					$this->range->start = $source->pager->offset;
+				}
+				if($source->pager->limit !== null) {
+					$this->range->length = $source->pager->limit;
+				}
+			}
+		}
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

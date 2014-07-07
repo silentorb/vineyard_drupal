@@ -39,7 +39,7 @@ class metahub_code_Scope_Definition {
 		}
 		return $this->parent->_find($name);
 	}
-	public function find($name) {
+	public function find($name, $namespace) {
 		if($this->symbols->exists($name)) {
 			return $this->symbols->get($name);
 		}
@@ -52,8 +52,11 @@ class metahub_code_Scope_Definition {
 				return $this->_this->get_context_symbol($name);
 			}
 		}
-		if($result === null && $this->hub->schema->trellis_keys->exists($name)) {
-			$result = new metahub_code_symbols_Trellis_Symbol($this->hub->schema->trellis_keys->get($name));
+		if($result === null) {
+			$trellis = $this->hub->schema->get_trellis($name, $namespace, false);
+			if($trellis !== null) {
+				$result = new metahub_code_symbols_Trellis_Symbol($trellis);
+			}
 		}
 		if($result === null) {
 			throw new HException("Could not find symbol: " . _hx_string_or_null($name) . ".");

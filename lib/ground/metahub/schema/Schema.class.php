@@ -3,20 +3,27 @@
 class metahub_schema_Schema {
 	public function __construct() {
 		if(!php_Boot::$skip_constructor) {
-		$this->trellis_keys = new haxe_ds_StringMap();
+		$this->namespaces = new haxe_ds_StringMap();
 		$this->trellises = new _hx_array(array());
 	}}
 	public $trellises;
-	public $trellis_keys;
-	public function add_trellis($name, $trellis) {
-		{
-			$this->trellis_keys->set($name, $trellis);
-			$trellis;
+	public $namespaces;
+	public function add_namespace($name) {
+		if($this->namespaces->exists($name)) {
+			return $this->namespaces->get($name);
 		}
+		$namespace = new metahub_schema_Namespace($name, $name);
+		{
+			$this->namespaces->set($name, $namespace);
+			$namespace;
+		}
+		return $namespace;
+	}
+	public function add_trellis($name, $trellis) {
 		$this->trellises->push($trellis);
 		return $trellis;
 	}
-	public function load_trellises($trellises) {
+	public function load_trellises($trellises, $namespace) {
 		$trellis = null;
 		$source = null;
 		$name = null;
@@ -27,9 +34,9 @@ class metahub_schema_Schema {
 				$name1 = $_g1[$_g];
 				++$_g;
 				$source = Reflect::field($trellises, $name1);
-				$trellis = $this->trellis_keys->get($name1);
+				$trellis = $namespace->trellises->get($name1);
 				if($trellis === null) {
-					$trellis = $this->add_trellis($name1, new metahub_schema_Trellis($name1, $this));
+					$trellis = $this->add_trellis($name1, new metahub_schema_Trellis($name1, $this, $namespace));
 				}
 				$trellis->load_properties($source);
 				unset($name1);
@@ -42,8 +49,8 @@ class metahub_schema_Schema {
 				$name2 = $_g11[$_g2];
 				++$_g2;
 				$source = Reflect::field($trellises, $name2);
-				$trellis = $this->trellis_keys->get($name2);
-				$trellis->initialize1($source);
+				$trellis = $namespace->trellises->get($name2);
+				$trellis->initialize1($source, $namespace);
 				unset($name2);
 			}
 		}
@@ -54,17 +61,29 @@ class metahub_schema_Schema {
 				$name3 = $_g12[$_g3];
 				++$_g3;
 				$source = Reflect::field($trellises, $name3);
-				$trellis = $this->trellis_keys->get($name3);
+				$trellis = $namespace->trellises->get($name3);
 				$trellis->initialize2($source);
 				unset($name3);
 			}
 		}
 	}
-	public function get_trellis($name) {
-		if(!$this->trellis_keys->exists($name)) {
+	public function get_trellis($name, $namespace, $throw_exception_on_missing = null) {
+		if($throw_exception_on_missing === null) {
+			$throw_exception_on_missing = false;
+		}
+		if(_hx_index_of($name, ".", null) > -1) {
+			throw new HException("Namespace paths are not supported yet.");
+		}
+		if($namespace === null) {
+			throw new HException("Could not find namespace for trellis: " . _hx_string_or_null($name) . ".");
+		}
+		if(!$namespace->trellises->exists($name)) {
+			if(!$throw_exception_on_missing) {
+				return null;
+			}
 			throw new HException("Could not find trellis named: " . _hx_string_or_null($name) . ".");
 		}
-		return $this->trellis_keys->get($name);
+		return $namespace->trellises->get($name);
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

@@ -61,7 +61,7 @@ class metahub_schema_Property {
 		if($source->type !== "list" && $source->type !== "reference") {
 			return;
 		}
-		$this->other_trellis = $this->trellis->schema->get_trellis($source->trellis);
+		$this->other_trellis = $this->trellis->schema->get_trellis($source->trellis, $this->trellis->{"namespace"}, null);
 		if($source->other_property !== null) {
 			$this->other_property = $this->other_trellis->get_property($source->other_property);
 		} else {

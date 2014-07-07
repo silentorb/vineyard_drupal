@@ -72,7 +72,7 @@ class metahub_code_Coder {
 		return new metahub_code_expressions_Literal($source->value, new metahub_code_Type_Reference($type, null));
 	}
 	public function create_node($source, $scope_definition) {
-		$trellis = $this->hub->schema->get_trellis($source->trellis);
+		$trellis = $this->hub->schema->get_trellis($source->trellis, $this->hub->metahub_namespace, null);
 		$result = new metahub_code_expressions_Create_Node($trellis);
 		if(_hx_field($source, "set") !== null) {
 			$_g = 0;
@@ -93,7 +93,7 @@ class metahub_code_Coder {
 		return $result;
 	}
 	public function path_to_engine_reference($path, $scope_definition) {
-		$symbol = $scope_definition->find($path[0]);
+		$symbol = $scope_definition->find($path[0], $this->hub->metahub_namespace);
 		return $symbol->create_reference($this->extract_path($path));
 	}
 	public function extract_path($path) {
@@ -110,7 +110,7 @@ class metahub_code_Coder {
 		return $result;
 	}
 	public function path_to_schema_reference($path, $scope_definition) {
-		$symbol = $scope_definition->find($path[0]);
+		$symbol = $scope_definition->find($path[0], $this->hub->metahub_namespace);
 		return $symbol->create_reference($this->extract_path($path));
 	}
 	public function create_reference($source, $scope_definition) {
@@ -129,13 +129,13 @@ class metahub_code_Coder {
 	}
 	public function function_expression($source, $scope_definition) {
 		$_g = $this;
-		$trellis = $this->hub->schema->get_trellis($source->name);
+		$trellis = $this->hub->schema->get_trellis($source->name, $this->hub->metahub_namespace, null);
 		$expressions = $source->inputs;
 		$inputs = Lambda::harray(Lambda::map($expressions, array(new _hx_lambda(array(&$_g, &$expressions, &$scope_definition, &$source, &$trellis), "metahub_code_Coder_0"), 'execute')));
 		return new metahub_code_expressions_Function_Call($trellis, $inputs);
 	}
 	public function set($source, $scope_definition) {
-		$reference = $scope_definition->find($source->path);
+		$reference = $scope_definition->find($source->path, $this->hub->metahub_namespace);
 		$trellis = $reference->get_trellis();
 		$result = new metahub_code_expressions_Set($reference);
 		{
@@ -154,7 +154,7 @@ class metahub_code_Coder {
 	}
 	public function trellis_scope($source, $scope_definition) {
 		$new_scope_definition = new metahub_code_Scope_Definition($scope_definition, null);
-		$trellis = $this->hub->schema->get_trellis($source->path);
+		$trellis = $this->hub->schema->get_trellis($source->path, $this->hub->metahub_namespace, null);
 		$new_scope_definition->_this = new metahub_code_symbols_Trellis_Symbol($trellis);
 		$statements = new _hx_array(array());
 		{

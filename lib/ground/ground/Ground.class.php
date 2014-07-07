@@ -8,9 +8,9 @@ class ground_Ground {
 	}}
 	public $hub;
 	public $storage;
-	public function run_query($source, $response) {
+	public function run_query($source, $response, $namespace) {
 		$query = new ground_query_Classic_Query();
-		$query->extend($source, $this->hub->schema);
+		$query->extend($source, $this->hub->schema, $namespace);
 		$this->storage->run_query($query, $response);
 		return;
 	}

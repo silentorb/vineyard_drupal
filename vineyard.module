@@ -41,6 +41,7 @@ function vineyard_permission() {
 
 function vineyard_service($action) {
   require_once drupal_get_path('module', 'vineyard') . '/lib/ground/php/Boot.class.php';
+  restore_exception_handler();
   $vineyard = new Vineyard();
   module_invoke_all('init_vineyard', $vineyard);
   $vineyard->service($action);

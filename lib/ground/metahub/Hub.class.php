@@ -8,6 +8,7 @@ class metahub_Hub {
 		$this->root_scope_definition = new metahub_code_Scope_Definition(null, $this);
 		$this->root_scope = new metahub_code_Scope($this, $this->root_scope_definition, null);
 		$this->schema = new metahub_schema_Schema();
+		$this->metahub_namespace = $this->schema->add_namespace("metahub");
 		$this->create_functions();
 	}}
 	public $nodes;
@@ -15,6 +16,7 @@ class metahub_Hub {
 	public $root_scope;
 	public $root_scope_definition;
 	public $parser_definition;
+	public $metahub_namespace;
 	public function load_parser() {
 		$boot_definition = new metahub_parser_Definition();
 		$boot_definition->load_parser_schema();
@@ -37,9 +39,9 @@ class metahub_Hub {
 	public function get_node_count() {
 		return $this->nodes->length - 1;
 	}
-	public function load_schema_from_file($url) {
+	public function load_schema_from_file($url, $namespace) {
 		$data = metahub_Utility::load_json($url);
-		$this->schema->load_trellises($data->trellises);
+		$this->schema->load_trellises($data->trellises, $namespace);
 	}
 	public function run_data($source) {
 		$coder = new metahub_code_Coder($this);
@@ -65,7 +67,7 @@ class metahub_Hub {
 	public function create_functions() {
 		$functions = "{\x0D\x0A  \"trellises\": {\x0D\x0A    \"string\": {\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"string\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    },\x0D\x0A    \"int\": {\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"int\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    },\x0D\x0A    \"function\": {},\x0D\x0A    \"sum\": {\x0D\x0A      \"parent\": \"function\",\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        },\x0D\x0A        \"input\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    },\x0D\x0A    \"subtract\": {\x0D\x0A      \"parent\": \"function\",\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        },\x0D\x0A        \"input\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    },\x0D\x0A    \"count\": {\x0D\x0A      \"parent\": \"function\",\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        },\x0D\x0A        \"input\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    }\x0D\x0A  }\x0D\x0A}";
 		$data = haxe_Json::phpJsonDecode($functions);
-		$this->schema->load_trellises($data->trellises);
+		$this->schema->load_trellises($data->trellises, $this->metahub_namespace);
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

@@ -1,12 +1,17 @@
 <?php
 
 class metahub_schema_Trellis {
-	public function __construct($name, $schema) {
+	public function __construct($name, $schema, $namespace) {
 		if(!php_Boot::$skip_constructor) {
 		$this->property_keys = new haxe_ds_StringMap();
 		$this->properties = new _hx_array(array());
 		$this->name = $name;
 		$this->schema = $schema;
+		$this->{"namespace"} = $namespace;
+		{
+			$namespace->trellises->set($name, $this);
+			$this;
+		}
 	}}
 	public $name;
 	public $schema;
@@ -14,6 +19,8 @@ class metahub_schema_Trellis {
 	public $property_keys;
 	public $parent;
 	public $id;
+	public $identity_property;
+	public $namespace;
 	public function add_property($name, $source) {
 		$property = new metahub_schema_Property($name, $source, $this);
 		{
@@ -23,6 +30,13 @@ class metahub_schema_Trellis {
 		$property->id = $this->properties->length;
 		$this->properties->push($property);
 		return $property;
+	}
+	public function copy_identity($source, $target) {
+		$identity_key = $this->identity_property->name;
+		{
+			$value = Reflect::field($source, $identity_key);
+			$target->{$identity_key} = $value;
+		}
 	}
 	public function get_all_properties() {
 		$result = new haxe_ds_StringMap();
@@ -50,6 +64,12 @@ class metahub_schema_Trellis {
 			}
 		}
 		return $result;
+	}
+	public function get_identity($seed) {
+		if($this->identity_property === null) {
+			throw new HException("This trellis does not have an identity property set.");
+		}
+		return Reflect::field($seed, $this->identity_property->name);
 	}
 	public function get_property($name) {
 		$properties = $this->get_all_properties();
@@ -93,11 +113,25 @@ class metahub_schema_Trellis {
 			unset($name);
 		}
 	}
-	public function initialize1($source) {
+	public function initialize1($source, $namespace) {
 		$trellises = $this->schema->trellises;
 		if($source->parent !== null) {
-			$trellis = $this->schema->get_trellis($source->parent);
+			$trellis = $this->schema->get_trellis($source->parent, $namespace, null);
 			$this->set_parent($trellis);
+		}
+		if($source->primary_key !== null) {
+			$primary_key = $source->primary_key;
+			if($this->property_keys->exists($primary_key)) {
+				$this->identity_property = $this->property_keys->get($primary_key);
+			}
+		} else {
+			if($this->parent !== null) {
+				$this->identity_property = $this->parent->identity_property;
+			} else {
+				if($this->property_keys->exists("id")) {
+					$this->identity_property = $this->property_keys->get("id");
+				}
+			}
 		}
 	}
 	public function initialize2($source) {

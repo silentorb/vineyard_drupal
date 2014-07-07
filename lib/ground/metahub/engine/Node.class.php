@@ -25,7 +25,7 @@ class metahub_engine_Node implements metahub_engine_INode{
 				unset($property,$port,$_t);
 			}
 		}
-		if($trellis->is_a($hub->schema->get_trellis("function"))) {
+		if($trellis->is_a($hub->schema->get_trellis("function", $hub->metahub_namespace, null))) {
 			$this->initialize_function();
 		}
 	}}
