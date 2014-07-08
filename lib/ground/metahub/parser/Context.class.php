@@ -18,7 +18,7 @@ class metahub_parser_Context {
 		}
 		$this->text = $text;
 		if($this->definition->patterns->length === 0) {
-			throw new HException("Unable to parse; definition does not have any patterns.");
+			throw new HException(new HException("Unable to parse; definition does not have any patterns.", null, null, _hx_anonymous(array("fileName" => "Context.hx", "lineNumber" => 19, "className" => "metahub.parser.Context", "methodName" => "parse"))));
 		}
 		$result = _hx_array_get($this->definition->patterns, 0)->test(new metahub_parser_Position($this, null, null, null), 0);
 		if($result->success) {
@@ -27,7 +27,7 @@ class metahub_parser_Context {
 			if($offset->get_offset() < strlen($text)) {
 				$result->success = false;
 				if(!$silent) {
-					throw new HException("Could not find match at " . _hx_string_or_null($offset->get_coordinate_string()) . " [" . _hx_string_or_null(_hx_substr($text, $offset->get_offset(), null)) . "]");
+					throw new HException(new HException("Could not find match at " . _hx_string_or_null($offset->get_coordinate_string()) . " [" . _hx_string_or_null(_hx_substr($text, $offset->get_offset(), null)) . "]", null, null, _hx_anonymous(array("fileName" => "Context.hx", "lineNumber" => 28, "className" => "metahub.parser.Context", "methodName" => "parse"))));
 				}
 			}
 		}
@@ -52,7 +52,7 @@ class metahub_parser_Context {
 			}
 			$repetition = $previous->get_repetition($messages);
 			if($i++ > 20) {
-				throw new HException("Infinite loop looking for previous repetition.");
+				throw new HException(new HException("Infinite loop looking for previous repetition.", null, null, _hx_anonymous(array("fileName" => "Context.hx", "lineNumber" => 57, "className" => "metahub.parser.Context", "methodName" => "rewind"))));
 			}
 		}
 		$pattern = $repetition->pattern;

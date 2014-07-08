@@ -40,7 +40,7 @@ class metahub_parser_Bootstrap extends metahub_parser_Context {
 			return $this->rule($data);
 		}break;
 		default:{
-			throw new HException("Invalid parser method: " . _hx_string_or_null($name) . ".");
+			throw new HException(new HException("Invalid parser method: " . _hx_string_or_null($name) . ".", null, null, _hx_anonymous(array("fileName" => "Bootstrap.hx", "lineNumber" => 35, "className" => "metahub.parser.Bootstrap", "methodName" => "perform_action"))));
 		}break;
 		}
 	}

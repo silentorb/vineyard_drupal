@@ -72,16 +72,16 @@ class metahub_schema_Schema {
 			$throw_exception_on_missing = false;
 		}
 		if(_hx_index_of($name, ".", null) > -1) {
-			throw new HException("Namespace paths are not supported yet.");
+			throw new HException(new HException("Namespace paths are not supported yet.", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 57, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
 		}
 		if($namespace === null) {
-			throw new HException("Could not find namespace for trellis: " . _hx_string_or_null($name) . ".");
+			throw new HException(new HException("Could not find namespace for trellis: " . _hx_string_or_null($name) . ".", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 60, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
 		}
 		if(!$namespace->trellises->exists($name)) {
 			if(!$throw_exception_on_missing) {
 				return null;
 			}
-			throw new HException("Could not find trellis named: " . _hx_string_or_null($name) . ".");
+			throw new HException(new HException("Could not find trellis named: " . _hx_string_or_null($name) . ".", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 66, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
 		}
 		return $namespace->trellises->get($name);
 	}

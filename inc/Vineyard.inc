@@ -63,6 +63,11 @@ class Vineyard {
       }
 
     } catch (Exception $ex) {
+      // Working around Haxe-PHP goofiness
+      if (get_class($ex) == 'HException') {
+        $ex = $ex->e;
+      }
+      
       $code = $ex->getCode();
       if (!$code)
         $code = '500';

@@ -67,7 +67,7 @@ class metahub_schema_Property {
 		} else {
 			$other_properties = Lambda::filter($this->other_trellis->properties, array(new _hx_lambda(array(&$_g, &$source), "metahub_schema_Property_0"), 'execute'));
 			if($other_properties->length > 1) {
-				throw new HException("Multiple ambiguous other properties for " . _hx_string_or_null($this->trellis->name) . "." . _hx_string_or_null($this->name) . ".");
+				throw new HException(new HException("Multiple ambiguous other properties for " . _hx_string_or_null($this->trellis->name) . "." . _hx_string_or_null($this->name) . ".", null, null, _hx_anonymous(array("fileName" => "Property.hx", "lineNumber" => 88, "className" => "metahub.schema.Property", "methodName" => "initialize_link"))));
 			} else {
 				if($other_properties->length === 1) {
 					$this->other_property = $other_properties->first();

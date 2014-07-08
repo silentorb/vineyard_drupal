@@ -67,22 +67,22 @@ class metahub_schema_Trellis {
 	}
 	public function get_identity($seed) {
 		if($this->identity_property === null) {
-			throw new HException("This trellis does not have an identity property set.");
+			throw new HException(new HException("This trellis does not have an identity property set.", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 58, "className" => "metahub.schema.Trellis", "methodName" => "get_identity"))));
 		}
 		return Reflect::field($seed, $this->identity_property->name);
 	}
 	public function get_property($name) {
 		$properties = $this->get_all_properties();
 		if(!$properties->exists($name)) {
-			throw new HException(_hx_string_or_null($this->name) . " does not contain a property named " . _hx_string_or_null($name) . ".");
+			throw new HException(new HException(_hx_string_or_null($this->name) . " does not contain a property named " . _hx_string_or_null($name) . ".", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 66, "className" => "metahub.schema.Trellis", "methodName" => "get_property"))));
 		}
 		return $properties->get($name);
 	}
 	public function get_value($index) {
-		throw new HException("Cannot get value of a trellis property.");
+		throw new HException(new HException("Cannot get value of a trellis property.", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 72, "className" => "metahub.schema.Trellis", "methodName" => "get_value"))));
 	}
 	public function set_value($index, $value) {
-		throw new HException("Cannot set value of a trellis property.");
+		throw new HException(new HException("Cannot set value of a trellis property.", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 76, "className" => "metahub.schema.Trellis", "methodName" => "set_value"))));
 	}
 	public function get_tree() {
 		$trellis = $this;

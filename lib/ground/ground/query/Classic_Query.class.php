@@ -11,12 +11,13 @@ class ground_query_Classic_Query {
 	public $expansions;
 	public $properties;
 	public function extend($source, $schema, $namespace) {
-		$this->trellis = $schema->get_trellis($source->trellis, $namespace, null);
+		if($source->trellis === null) {
+			throw new HException(new HException("Request is missing trellis argument.", null, 400, _hx_anonymous(array("fileName" => "Classic_Query.hx", "lineNumber" => 26, "className" => "ground.query.Classic_Query", "methodName" => "extend"))));
+		}
+		$this->trellis = $schema->get_trellis($source->trellis, $namespace, true);
 		$this->filters = $source->filters;
 		$this->sorts = $source->sorts;
-		if($source->properties !== null) {
-			$this->properties = $source->properties;
-		}
+		$this->properties = $source->properties;
 		$this->expansions = $source->expansions;
 		if(_hx_field($source, "range") !== null) {
 			$this->range = $source->range;

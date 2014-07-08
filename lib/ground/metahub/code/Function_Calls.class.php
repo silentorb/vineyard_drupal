@@ -4,7 +4,7 @@ class metahub_code_Function_Calls {
 	public function __construct(){}
 	static function call($id, $args, $type) {
 		if(!_hx_has_field(_hx_qtype("metahub.code.Function_Calls"), $id)) {
-			throw new HException("Invalid function name " . _hx_string_or_null($id) . ".");
+			throw new HException(new HException("Invalid function name " . _hx_string_or_null($id) . ".", null, null, _hx_anonymous(array("fileName" => "Functions.hx", "lineNumber" => 19, "className" => "metahub.code.Function_Calls", "methodName" => "call"))));
 		}
 		$func = Reflect::field(_hx_qtype("metahub.code.Function_Calls"), $id);
 		return Reflect::callMethod(_hx_qtype("metahub.code.Function_Calls"), $func, (new _hx_array(array($args))));

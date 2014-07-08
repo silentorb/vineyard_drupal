@@ -28,7 +28,7 @@ class metahub_parser_Pattern {
 		return $result;
 	}
 	public function __test__($position, $depth) {
-		throw new HException("__test__ is an abstract function");
+		throw new HException(new HException("__test__ is an abstract function", null, null, _hx_anonymous(array("fileName" => "Pattern.hx", "lineNumber" => 28, "className" => "metahub.parser.Pattern", "methodName" => "__test__"))));
 	}
 	public function debug_info() {
 		return "";

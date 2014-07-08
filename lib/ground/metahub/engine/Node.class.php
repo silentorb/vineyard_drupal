@@ -81,7 +81,7 @@ class metahub_engine_Node implements metahub_engine_INode{
 	}
 	public function get_port_from_chain($chain) {
 		if($chain->length === 0) {
-			throw new HException("Cannot follow empty property chain.");
+			throw new HException(new HException("Cannot follow empty property chain.", null, null, _hx_anonymous(array("fileName" => "Node.hx", "lineNumber" => 82, "className" => "metahub.engine.Node", "methodName" => "get_port_from_chain"))));
 		}
 		$current_node = $this;
 		$i = 0;
@@ -97,7 +97,7 @@ class metahub_engine_Node implements metahub_engine_INode{
 					unset($reference);
 				} else {
 					if($i < $chain->length - 1) {
-						throw new HException("Invalid chain. " . _hx_string_or_null($link->fullname()) . " is not a reference.");
+						throw new HException(new HException("Invalid chain. " . _hx_string_or_null($link->fullname()) . " is not a reference.", null, null, _hx_anonymous(array("fileName" => "Node.hx", "lineNumber" => 94, "className" => "metahub.engine.Node", "methodName" => "get_port_from_chain"))));
 					}
 					return $current_node->get_port($link->id);
 				}
@@ -105,7 +105,7 @@ class metahub_engine_Node implements metahub_engine_INode{
 				unset($port,$link,$_t);
 			}
 		}
-		throw new HException("Could not follow chain");
+		throw new HException(new HException("Could not follow chain", null, null, _hx_anonymous(array("fileName" => "Node.hx", "lineNumber" => 102, "className" => "metahub.engine.Node", "methodName" => "get_port_from_chain"))));
 	}
 	public function get_value($index) {
 		$port = $this->get_port($index);

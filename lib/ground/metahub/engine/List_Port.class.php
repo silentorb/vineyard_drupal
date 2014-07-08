@@ -22,7 +22,7 @@ class metahub_engine_List_Port extends metahub_engine_Base_Port {
 		$this->update_property_dependents();
 	}
 	public function set_value($new_value, $context = null) {
-		throw new HException("Not supported.");
+		throw new HException(new HException("Not supported.", null, null, _hx_anonymous(array("fileName" => "List_Port.hx", "lineNumber" => 40, "className" => "metahub.engine.List_Port", "methodName" => "set_value"))));
 	}
 	function __toString() { return 'metahub.engine.List_Port'; }
 }

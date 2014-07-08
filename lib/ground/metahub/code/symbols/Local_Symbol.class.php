@@ -27,7 +27,7 @@ class metahub_code_symbols_Local_Symbol implements metahub_code_symbols_Symbol{
 			return $scope->values[$this->index];
 		}
 		if($scope->parent === null) {
-			throw new HException("Could not find scope for symbol: " . _hx_string_or_null($this->name) . ".");
+			throw new HException(new HException("Could not find scope for symbol: " . _hx_string_or_null($this->name) . ".", null, null, _hx_anonymous(array("fileName" => "Local_Symbol.hx", "lineNumber" => 43, "className" => "metahub.code.symbols.Local_Symbol", "methodName" => "resolve"))));
 		}
 		return $this->resolve($scope->parent);
 	}

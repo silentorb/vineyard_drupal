@@ -5,10 +5,10 @@ class metahub_code_references_Trellis_Reference extends metahub_code_references_
 		parent::__construct($symbol,$chain);
 	}}
 	public function get_port($scope) {
-		throw new HException("Not implemented yet.");
+		throw new HException(new HException("Not implemented yet.", null, null, _hx_anonymous(array("fileName" => "Trellis_Reference.hx", "lineNumber" => 18, "className" => "metahub.code.references.Trellis_Reference", "methodName" => "get_port"))));
 	}
 	public function resolve($scope) {
-		throw new HException("Not implemented yet.");
+		throw new HException(new HException("Not implemented yet.", null, null, _hx_anonymous(array("fileName" => "Trellis_Reference.hx", "lineNumber" => 22, "className" => "metahub.code.references.Trellis_Reference", "methodName" => "resolve"))));
 	}
 	function __toString() { return 'metahub.code.references.Trellis_Reference'; }
 }

@@ -7,7 +7,7 @@ class metahub_code_symbols_Property_Symbol implements metahub_code_symbols_ISche
 	}}
 	public $property;
 	public function get_port($scope, $path = null) {
-		throw new HException("Not supported");
+		throw new HException(new HException("Not supported", null, null, _hx_anonymous(array("fileName" => "Property_Symbol.hx", "lineNumber" => 17, "className" => "metahub.code.symbols.Property_Symbol", "methodName" => "get_port"))));
 	}
 	public function resolve($scope) {
 		return null;

@@ -19,7 +19,7 @@ class metahub_code_expressions_Create_Constraint implements metahub_code_express
 			return null;
 		} else {
 		}
-		throw new HException("Not implemented yet.");
+		throw new HException(new HException("Not implemented yet.", null, null, _hx_anonymous(array("fileName" => "Create_Constraint.hx", "lineNumber" => 46, "className" => "metahub.code.expressions.Create_Constraint", "methodName" => "resolve"))));
 	}
 	public function to_port($scope) {
 		return null;

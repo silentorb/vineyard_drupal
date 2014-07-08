@@ -5,7 +5,7 @@ class metahub_code_references_Property_Reference extends metahub_code_references
 		parent::__construct($symbol,$chain);
 	}}
 	public function resolve($scope) {
-		throw new HException("Not implemented yet.");
+		throw new HException(new HException("Not implemented yet.", null, null, _hx_anonymous(array("fileName" => "Property_Reference.hx", "lineNumber" => 17, "className" => "metahub.code.references.Property_Reference", "methodName" => "resolve"))));
 	}
 	public function get_port($scope) {
 		$property = $this->get_property($scope);
@@ -32,7 +32,7 @@ class metahub_code_references_Property_Reference extends metahub_code_references
 		if($_this !== null && (is_object($_t = $_this->get_trellis()) && !($_t instanceof Enum) ? $_t === $this->symbol->get_parent_trellis() : $_t == $this->symbol->get_parent_trellis())) {
 			return (new _hx_array(array()));
 		}
-		throw new HException("Not implemented");
+		throw new HException(new HException("Not implemented", null, null, _hx_anonymous(array("fileName" => "Property_Reference.hx", "lineNumber" => 50, "className" => "metahub.code.references.Property_Reference", "methodName" => "create_chain_to_origin"))));
 	}
 	function __toString() { return 'metahub.code.references.Property_Reference'; }
 }

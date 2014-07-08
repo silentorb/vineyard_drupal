@@ -32,7 +32,7 @@ class metahub_schema_Property_Port implements metahub_engine_IPort{
 	public function hexit($value, $context = null) {
 		$_g = $this;
 		if($context->property_port === null) {
-			throw new HException("Not implemented.");
+			throw new HException(new HException("Not implemented.", null, null, _hx_anonymous(array("fileName" => "Property_Port.hx", "lineNumber" => 49, "className" => "metahub.schema.Property_Port", "methodName" => "exit"))));
 		}
 		$entry_node = $context->entry_node;
 		metahub_schema_Property_Chain_Helper::perform($context->property_port->origin, $entry_node, array(new _hx_lambda(array(&$_g, &$context, &$entry_node, &$value), "metahub_schema_Property_Port_0"), 'execute'), null);

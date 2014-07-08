@@ -59,7 +59,7 @@ class metahub_code_Scope_Definition {
 			}
 		}
 		if($result === null) {
-			throw new HException("Could not find symbol: " . _hx_string_or_null($name) . ".");
+			throw new HException(new HException("Could not find symbol: " . _hx_string_or_null($name) . ".", null, null, _hx_anonymous(array("fileName" => "Scope_Definition.hx", "lineNumber" => 66, "className" => "metahub.code.Scope_Definition", "methodName" => "find"))));
 		}
 		return $result;
 	}

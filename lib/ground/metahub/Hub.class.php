@@ -32,7 +32,7 @@ class metahub_Hub {
 	}
 	public function get_node($id) {
 		if($id < 0 || $id >= $this->nodes->length) {
-			throw new HException("There is no node with an id of " . _hx_string_rec($id, "") . ".");
+			throw new HException(new HException("There is no node with an id of " . _hx_string_rec($id, "") . ".", null, null, _hx_anonymous(array("fileName" => "Hub.hx", "lineNumber" => 51, "className" => "metahub.Hub", "methodName" => "get_node"))));
 		}
 		return $this->nodes[$id];
 	}
@@ -51,7 +51,7 @@ class metahub_Hub {
 	public function run_code($code) {
 		$result = $this->parse_code($code);
 		if(!$result->success) {
-			throw new HException("Error parsing code.");
+			throw new HException(new HException("Error parsing code.", null, null, _hx_anonymous(array("fileName" => "Hub.hx", "lineNumber" => 82, "className" => "metahub.Hub", "methodName" => "run_code"))));
 		}
 		$match = $result;
 		$this->run_data($match->get_data());

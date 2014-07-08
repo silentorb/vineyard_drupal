@@ -39,7 +39,7 @@ class metahub_code_Coder {
 			}break;
 			}
 		}
-		throw new HException("Invalid block: " . Std::string($source->type));
+		throw new HException(new HException("Invalid block: " . Std::string($source->type), null, null, _hx_anonymous(array("fileName" => "Coder.hx", "lineNumber" => 42, "className" => "metahub.code.Coder", "methodName" => "convert"))));
 	}
 	public function constraint($source, $scope_definition) {
 		$expression = $this->convert($source->expression, $scope_definition);
@@ -193,7 +193,7 @@ class metahub_code_Coder {
 		if(Std::is($value, _hx_qtype("String"))) {
 			return 2;
 		}
-		throw new HException("Could not find type.");
+		throw new HException(new HException("Could not find type.", null, null, _hx_anonymous(array("fileName" => "Coder.hx", "lineNumber" => 152, "className" => "metahub.code.Coder", "methodName" => "get_type"))));
 	}
 	function __toString() { return 'metahub.code.Coder'; }
 }

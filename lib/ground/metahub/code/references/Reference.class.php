@@ -9,13 +9,13 @@ class metahub_code_references_Reference {
 	public $symbol;
 	public $chain;
 	public function get_port($scope) {
-		throw new HException("Abstract class.  Not implemented.");
+		throw new HException(new HException("Abstract class.  Not implemented.", null, null, _hx_anonymous(array("fileName" => "Reference.hx", "lineNumber" => 23, "className" => "metahub.code.references.Reference", "methodName" => "get_port"))));
 	}
 	public function get_layer() {
 		return $this->symbol->get_layer();
 	}
 	public function resolve($scope) {
-		throw new HException("Not implemented yet.");
+		throw new HException(new HException("Not implemented yet.", null, null, _hx_anonymous(array("fileName" => "Reference.hx", "lineNumber" => 31, "className" => "metahub.code.references.Reference", "methodName" => "resolve"))));
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

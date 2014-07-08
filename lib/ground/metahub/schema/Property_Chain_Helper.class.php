@@ -62,7 +62,7 @@ class metahub_schema_Property_Chain_Helper {
 						$node = $node->hub->nodes[$id];
 						unset($id);
 					} else {
-						throw new HException("Not supported: " . _hx_string_or_null($link->name));
+						throw new HException(new HException("Not supported: " . _hx_string_or_null($link->name), null, null, _hx_anonymous(array("fileName" => "Property_Chain.hx", "lineNumber" => 61, "className" => "metahub.schema.Property_Chain_Helper", "methodName" => "perform"))));
 					}
 					unset($_t2);
 				}
