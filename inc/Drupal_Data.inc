@@ -36,20 +36,26 @@ class Drupal_Data implements ground_IStorage {
 
     foreach ($query->sorts as $sort) {
       $dir = isset($sort->dir) ? $sort->dir : 'DESC';
-        $entity_query->propertyOrderBy($sort->path, $dir);
+      $entity_query->propertyOrderBy($sort->path, $dir);
     }
   }
 
   function run_query($query, $response) {
     $response->objects = array();
+    $entity_type = 'node';
     $entity_query = new EntityFieldQuery();
+    $entity_info = entity_get_info();
+    if (array_key_exists($query->trellis->name, $entity_info)) {
+      $entity_type = $query->trellis->name;
+    }
+
     $entity_query
-      ->entityCondition('entity_type', 'node')
-      ->entityCondition('bundle', $query->trellis->name)
-      ->propertyCondition('status', 1);
-//      ->propertyOrderBy('created', 'DESC')
-//      ->fieldCondition('field_foo', 'tid', array('1', '2'))
-//      ->range(0,10);
+      ->entityCondition('entity_type', $entity_type);
+
+    if ($entity_type == 'node') {
+      $entity_query->propertyCondition('status', 1)
+        ->entityCondition('bundle', $query->trellis->name);
+    }
 
     $this->process_filters($query, $entity_query);
     $this->process_sorts($query, $entity_query);
@@ -62,11 +68,11 @@ class Drupal_Data implements ground_IStorage {
 
     $result = $entity_query->execute();
 
-    if (isset($result['node'])) {
-      $nids = array_keys($result['node']);
-      $nodes = entity_load('node', $nids);
-      foreach ($nodes as $node) {
-        $response->objects[] = $this->post_process($node, $query);;
+    if (isset($result[$entity_type])) {
+      $nids = array_keys($result[$entity_type]);
+      $entities = entity_load($entity_type, $nids);
+      foreach ($entities as $entity) {
+        $response->objects[] = $this->post_process($entity, $query);;
       }
     }
   }
@@ -75,13 +81,13 @@ class Drupal_Data implements ground_IStorage {
 
   }
 
-  function post_process($node, $query) {
+  function post_process($entity, $query) {
     if (isset($query->expansions) && in_array('children', $query->expansions)) {
       $sql = 'SELECT link_path FROM `menu_links` where plid = :plid';
     }
 
-    if (isset($node->nodehierarchy_menu_links) && count($node->nodehierarchy_menu_links) > 0) {
-      $tree = $node->nodehierarchy_menu_links[0];
+    if (isset($entity->nodehierarchy_menu_links) && count($entity->nodehierarchy_menu_links) > 0) {
+      $tree = $entity->nodehierarchy_menu_links[0];
       $sql = 'SELECT link_path FROM `menu_links` where plid = :plid';
       $rows = db_query($sql, array('plid' => $tree['mlid']))->fetchAll();
       foreach ($rows as $key => $row) {
@@ -94,7 +100,7 @@ class Drupal_Data implements ground_IStorage {
           $rows[] = $child;
         }
       }
-      $node->children = $rows;
+      $entity->children = $rows;
     }
 
     if (isset($query->properties)) {
@@ -103,15 +109,15 @@ class Drupal_Data implements ground_IStorage {
         ? array_merge($query->properties, $query->expansions)
         : $query->properties;
 
-      $result->nid = $node->nid;
+      $result->nid = $entity->nid;
       foreach ($keys as $key) {
-        $result->{$key} = $node->{$key};
+        $result->{$key} = $entity->{$key};
       }
 
       return $result;
     }
 
-    return $node;
+    return $entity;
   }
 
 }

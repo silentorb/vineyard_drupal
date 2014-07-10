@@ -67,7 +67,7 @@ class Vineyard {
       if (get_class($ex) == 'HException') {
         $ex = $ex->e;
       }
-      
+
       $code = $ex->getCode();
       if (!$code)
         $code = '500';
