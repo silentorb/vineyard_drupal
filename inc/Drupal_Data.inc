@@ -7,7 +7,7 @@ class Drupal_Data implements ground_IStorage {
       return;
 
     foreach ($query->filters as $filter) {
-      $path = explode($filter->path, '.');
+      $path = explode('.', $filter->path);
       $info = field_info_field($path[0]);
       if ($info) {
         if ($info['module'] == 'taxonomy') {
