@@ -82,26 +82,13 @@ class Drupal_Data implements ground_IStorage {
   }
 
   function post_process($entity, $query) {
-    if (isset($query->expansions) && in_array('children', $query->expansions)) {
-      $sql = 'SELECT link_path FROM `menu_links` where plid = :plid';
-    }
+//    if (isset($query->expansions) && in_array('children', $query->expansions)) {
+//      $sql = 'SELECT link_path FROM `menu_links` where plid = :plid';
+//    }
 
-    if (isset($entity->nodehierarchy_menu_links) && count($entity->nodehierarchy_menu_links) > 0) {
-      $tree = $entity->nodehierarchy_menu_links[0];
-      $sql = 'SELECT link_path FROM `menu_links` where plid = :plid';
-      $rows = db_query($sql, array('plid' => $tree['mlid']))->fetchAll();
-      foreach ($rows as $key => $row) {
-        $rows[$key] = (int)preg_replace('/[^\d]+/', '', $row->link_path);
-      }
-      if (isset($query->expansions) && in_array('children', $query->expansions)) {
-        $children = entity_load('node', $rows);
-        $rows = array();
-        foreach ($children as $child) {
-          $rows[] = $child;
-        }
-      }
-      $entity->children = $rows;
-    }
+    $this->node_hierarchy($entity, $query);
+
+    $this->get_links($entity, $query);
 
     if (isset($query->properties)) {
       $result = new stdClass();
@@ -120,4 +107,43 @@ class Drupal_Data implements ground_IStorage {
     return $entity;
   }
 
+  function node_hierarchy($entity, $query) {
+    if (isset($entity->nodehierarchy_menu_links) && count($entity->nodehierarchy_menu_links) > 0) {
+      $tree = $entity->nodehierarchy_menu_links[0];
+      $sql = 'SELECT link_path FROM `menu_links` where plid = :plid';
+      $rows = db_query($sql, array('plid' => $tree['mlid']))->fetchAll();
+      foreach ($rows as $key => $row) {
+        $rows[$key] = (int)preg_replace('/[^\d]+/', '', $row->link_path);
+      }
+      if (isset($query->expansions) && in_array('children', $query->expansions)) {
+        $children = entity_load('node', $rows);
+        $rows = array();
+        foreach ($children as $child) {
+          $rows[] = $child;
+        }
+      }
+      $entity->children = $rows;
+    }
+  }
+
+  function get_links($entity, $query) {
+    $properties = $query->trellis->get_all_properties();
+    foreach ($properties->h as $property) {
+      if (isset($query->properties) && !in_array($property->name, $query->properties))
+        continue;
+
+      if ($property->type == 3) { // 3: Reference
+        $base_name = $property->other_property->name;
+        $sql = <<<SQL
+SELECT entity_id
+FROM field_data_field_$base_name
+WHERE field_weapons_target_id = :id
+SQL;
+
+        $id = $query->trellis->get_identity($entity);
+        $result = db_query($sql, array(':id' => $id));
+        $entity->{$property->name} = (int)$result->fetchField(0);
+      }
+    }
+  }
 }

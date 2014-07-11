@@ -18,9 +18,10 @@ class metahub_engine_Base_Port implements metahub_engine_IPort{
 	public $dependents;
 	public $hub;
 	public $on_change;
-	public function add_dependency($other) {
-		$this->dependencies->push($other);
-		$other->dependents->push($this);
+	public function add_dependency($other, $operator) {
+		$relationship = new metahub_engine_Relationship($this, $operator, $other);
+		$this->dependencies->push($relationship);
+		$other->dependents->push($relationship);
 	}
 	public function get_index() {
 		return $this->property->id;
@@ -33,6 +34,20 @@ class metahub_engine_Base_Port implements metahub_engine_IPort{
 		return $this->_value;
 	}
 	public function set_value($new_value, $context = null) {
+		if(!$this->property->multiple && _hx_equal($this->_value, $new_value)) {
+			return $this->_value;
+		}
+		{
+			$_g = 0;
+			$_g1 = $this->dependencies;
+			while($_g < $_g1->length) {
+				$relationship = $_g1[$_g];
+				++$_g;
+				$new_value = $relationship->check_value($new_value, $context);
+				unset($relationship);
+			}
+		}
+		$new_value = $this->check_property_dependencies($new_value, $context);
 		if(!$this->property->multiple && _hx_equal($this->_value, $new_value)) {
 			return $this->_value;
 		}
@@ -52,11 +67,11 @@ class metahub_engine_Base_Port implements metahub_engine_IPort{
 			$this->update_property_dependents();
 		}
 		if($this->on_change !== null && $this->on_change->length > 0) {
-			$_g = 0;
-			$_g1 = $this->on_change;
-			while($_g < $_g1->length) {
-				$action = $_g1[$_g];
-				++$_g;
+			$_g2 = 0;
+			$_g11 = $this->on_change;
+			while($_g2 < $_g11->length) {
+				$action = $_g11[$_g2];
+				++$_g2;
 				call_user_func_array($action, array($this, $this->_value, $context));
 				unset($action);
 			}
@@ -86,6 +101,30 @@ class metahub_engine_Base_Port implements metahub_engine_IPort{
 			$port->enter($this->_value, $context);
 			unset($port,$context);
 		}
+	}
+	public function check_property_dependencies($new_value, $context) {
+		{
+			$_g = 0;
+			$_g1 = $this->property->ports;
+			while($_g < $_g1->length) {
+				$port = $_g1[$_g];
+				++$_g;
+				$context1 = new metahub_engine_Context($port, $this->parent);
+				{
+					$_g2 = 0;
+					$_g3 = $port->dependencies;
+					while($_g2 < $_g3->length) {
+						$relationship = $_g3[$_g2];
+						++$_g2;
+						$new_value = $relationship->check_value($new_value, $context1);
+						unset($relationship);
+					}
+					unset($_g3,$_g2);
+				}
+				unset($port,$context1);
+			}
+		}
+		return $new_value;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

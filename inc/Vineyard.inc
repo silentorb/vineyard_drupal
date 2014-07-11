@@ -12,7 +12,7 @@ class Vineyard {
   }
 
   function load_schema_from_file($filename) {
-    $this->hub->load_schema_from_file($filename, $this->namespace);
+    $this->hub->load_schema_from_file($filename, $this->namespace, true);
   }
 
   private function query($source, $result) {
@@ -68,20 +68,25 @@ class Vineyard {
         $ex = $ex->e;
       }
 
-      $code = $ex->getCode();
-      if (!$code)
+      if (is_string($ex)) {
         $code = '500';
-
-      if ($code == 500 && !user_access('administer permissions')) {
-        $result->message = 'Internal Server Error';
-        drupal_add_http_header('Status', $code);
+        drupal_add_http_header('Status', $code . ' Server Error');
       } else {
-        $result->message = $ex->getMessage();
-        $result->stack_trace = $ex->getTraceAsString();
-        if (strlen($result->message) < 32)
-          drupal_add_http_header('Status', $code . ' ' . $ex->getMessage());
-        else
-          drupal_add_http_header('Status', $code . ' ' . substr($result->message, 0, 32) . '...');
+        $code = $ex->getCode();
+        if (!$code)
+          $code = '500';
+
+        if ($code == 500 && !user_access('administer permissions')) {
+          $result->message = 'Internal Server Error';
+          drupal_add_http_header('Status', $code);
+        } else {
+          $result->message = $ex->getMessage();
+          $result->stack_trace = $ex->getTraceAsString();
+          if (strlen($result->message) < 32)
+            drupal_add_http_header('Status', $code . ' ' . $ex->getMessage());
+          else
+            drupal_add_http_header('Status', $code . ' ' . substr($result->message, 0, 32) . '...');
+        }
       }
     }
 

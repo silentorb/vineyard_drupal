@@ -39,16 +39,17 @@ class metahub_code_Coder {
 			}break;
 			}
 		}
-		throw new HException(new HException("Invalid block: " . Std::string($source->type), null, null, _hx_anonymous(array("fileName" => "Coder.hx", "lineNumber" => 42, "className" => "metahub.code.Coder", "methodName" => "convert"))));
+		throw new HException(new HException("Invalid block: " . Std::string($source->type), null, null, _hx_anonymous(array("fileName" => "Coder.hx", "lineNumber" => 44, "className" => "metahub.code.Coder", "methodName" => "convert"))));
 	}
 	public function constraint($source, $scope_definition) {
 		$expression = $this->convert($source->expression, $scope_definition);
+		$operator = metahub_code_Constraint::$operators->indexOf($source->operator, null);
 		if((is_object($_t = $scope_definition->_this->get_layer()) && !($_t instanceof Enum) ? $_t === metahub_code_Layer::$schema : $_t == metahub_code_Layer::$schema)) {
 			$reference = $this->path_to_schema_reference($source->path, $scope_definition);
-			return new metahub_code_expressions_Create_Constraint($reference, $expression);
+			return new metahub_code_expressions_Create_Constraint($reference, $operator, $expression);
 		} else {
 			$reference1 = $this->path_to_engine_reference($source->path, $scope_definition);
-			return new metahub_code_expressions_Create_Constraint($reference1, $expression);
+			return new metahub_code_expressions_Create_Constraint($reference1, $operator, $expression);
 		}
 	}
 	public function create_block($source, $scope_definition) {
@@ -71,8 +72,36 @@ class metahub_code_Coder {
 		$type = metahub_code_Coder::get_type($source->value);
 		return new metahub_code_expressions_Literal($source->value, new metahub_code_Type_Reference($type, null));
 	}
+	public function get_namespace($path, $start) {
+		$current_namespace = $start;
+		$i = 0;
+		{
+			$_g = 0;
+			while($_g < $path->length) {
+				$token = $path[$_g];
+				++$_g;
+				if($current_namespace->children->exists($token)) {
+					$current_namespace = $current_namespace->children->get($token);
+				} else {
+					if($current_namespace->trellises->exists($token) && $i === $path->length - 1) {
+						return $current_namespace;
+					} else {
+						return null;
+					}
+				}
+				++$i;
+				unset($token);
+			}
+		}
+		return $current_namespace;
+	}
 	public function create_node($source, $scope_definition) {
-		$trellis = $this->hub->schema->get_trellis($source->trellis, $this->hub->metahub_namespace, null);
+		$path = $source->trellis;
+		if($path->length === 0) {
+			throw new HException(new HException("Trellis path is empty for node creation.", null, null, _hx_anonymous(array("fileName" => "Coder.hx", "lineNumber" => 106, "className" => "metahub.code.Coder", "methodName" => "create_node"))));
+		}
+		$namespace = $this->get_namespace($path, $this->hub->schema->root_namespace);
+		$trellis = $this->hub->schema->get_trellis($path[$path->length - 1], $namespace, true);
 		$result = new metahub_code_expressions_Create_Node($trellis);
 		if(_hx_field($source, "set") !== null) {
 			$_g = 0;
@@ -93,7 +122,7 @@ class metahub_code_Coder {
 		return $result;
 	}
 	public function path_to_engine_reference($path, $scope_definition) {
-		$symbol = $scope_definition->find($path[0], $this->hub->metahub_namespace);
+		$symbol = $scope_definition->find($path[0], $this->hub->schema->root_namespace);
 		return $symbol->create_reference($this->extract_path($path));
 	}
 	public function extract_path($path) {
@@ -110,7 +139,7 @@ class metahub_code_Coder {
 		return $result;
 	}
 	public function path_to_schema_reference($path, $scope_definition) {
-		$symbol = $scope_definition->find($path[0], $this->hub->metahub_namespace);
+		$symbol = $scope_definition->find($path[0], $this->hub->schema->root_namespace);
 		return $symbol->create_reference($this->extract_path($path));
 	}
 	public function create_reference($source, $scope_definition) {
@@ -129,13 +158,13 @@ class metahub_code_Coder {
 	}
 	public function function_expression($source, $scope_definition) {
 		$_g = $this;
-		$trellis = $this->hub->schema->get_trellis($source->name, $this->hub->metahub_namespace, null);
+		$trellis = $this->hub->schema->get_trellis($source->name, $this->hub->schema->root_namespace, null);
 		$expressions = $source->inputs;
 		$inputs = Lambda::harray(Lambda::map($expressions, array(new _hx_lambda(array(&$_g, &$expressions, &$scope_definition, &$source, &$trellis), "metahub_code_Coder_0"), 'execute')));
 		return new metahub_code_expressions_Function_Call($trellis, $inputs);
 	}
 	public function set($source, $scope_definition) {
-		$reference = $scope_definition->find($source->path, $this->hub->metahub_namespace);
+		$reference = $scope_definition->find($source->path, $this->hub->schema->root_namespace);
 		$trellis = $reference->get_trellis();
 		$result = new metahub_code_expressions_Set($reference);
 		{
@@ -153,8 +182,13 @@ class metahub_code_Coder {
 		return $result;
 	}
 	public function trellis_scope($source, $scope_definition) {
+		$path = $source->path;
+		if($path->length === 0) {
+			throw new HException(new HException("Trellis path is empty for node creation.", null, null, _hx_anonymous(array("fileName" => "Coder.hx", "lineNumber" => 206, "className" => "metahub.code.Coder", "methodName" => "trellis_scope"))));
+		}
+		$namespace = $this->get_namespace($path, $this->hub->schema->root_namespace);
 		$new_scope_definition = new metahub_code_Scope_Definition($scope_definition, null);
-		$trellis = $this->hub->schema->get_trellis($source->path, $this->hub->metahub_namespace, null);
+		$trellis = $this->hub->schema->get_trellis($path[$path->length - 1], $namespace, null);
 		$new_scope_definition->_this = new metahub_code_symbols_Trellis_Symbol($trellis);
 		$statements = new _hx_array(array());
 		{
@@ -193,7 +227,7 @@ class metahub_code_Coder {
 		if(Std::is($value, _hx_qtype("String"))) {
 			return 2;
 		}
-		throw new HException(new HException("Could not find type.", null, null, _hx_anonymous(array("fileName" => "Coder.hx", "lineNumber" => 152, "className" => "metahub.code.Coder", "methodName" => "get_type"))));
+		throw new HException(new HException("Could not find type.", null, null, _hx_anonymous(array("fileName" => "Coder.hx", "lineNumber" => 179, "className" => "metahub.code.Coder", "methodName" => "get_type"))));
 	}
 	function __toString() { return 'metahub.code.Coder'; }
 }

@@ -3,18 +3,18 @@
 class metahub_schema_Schema {
 	public function __construct() {
 		if(!php_Boot::$skip_constructor) {
-		$this->namespaces = new haxe_ds_StringMap();
+		$this->root_namespace = new metahub_schema_Namespace("root", "root");
 		$this->trellises = new _hx_array(array());
 	}}
 	public $trellises;
-	public $namespaces;
+	public $root_namespace;
 	public function add_namespace($name) {
-		if($this->namespaces->exists($name)) {
-			return $this->namespaces->get($name);
+		if($this->root_namespace->children->exists($name)) {
+			return $this->root_namespace->children->get($name);
 		}
 		$namespace = new metahub_schema_Namespace($name, $name);
 		{
-			$this->namespaces->set($name, $namespace);
+			$this->root_namespace->children->set($name, $namespace);
 			$namespace;
 		}
 		return $namespace;
@@ -23,7 +23,11 @@ class metahub_schema_Schema {
 		$this->trellises->push($trellis);
 		return $trellis;
 	}
-	public function load_trellises($trellises, $namespace) {
+	public function load_trellises($trellises, $settings) {
+		if($settings->{"namespace"} === null) {
+			$settings->{"namespace"} = $this->root_namespace;
+		}
+		$namespace = $settings->{"namespace"};
 		$trellis = null;
 		$source = null;
 		$name = null;
@@ -39,6 +43,14 @@ class metahub_schema_Schema {
 					$trellis = $this->add_trellis($name1, new metahub_schema_Trellis($name1, $this, $namespace));
 				}
 				$trellis->load_properties($source);
+				if($settings->auto_identity && $trellis->identity_property === null) {
+					$identity_property = $trellis->get_property_or_null("id");
+					if($identity_property === null) {
+						$identity_property = $trellis->add_property("id", _hx_anonymous(array("type" => "int")));
+					}
+					$trellis->identity_property = $identity_property;
+					unset($identity_property);
+				}
 				unset($name1);
 			}
 		}
@@ -72,16 +84,16 @@ class metahub_schema_Schema {
 			$throw_exception_on_missing = false;
 		}
 		if(_hx_index_of($name, ".", null) > -1) {
-			throw new HException(new HException("Namespace paths are not supported yet.", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 57, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
+			throw new HException(new HException("Namespace paths are not supported yet.", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 71, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
 		}
 		if($namespace === null) {
-			throw new HException(new HException("Could not find namespace for trellis: " . _hx_string_or_null($name) . ".", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 60, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
+			throw new HException(new HException("Could not find namespace for trellis: " . _hx_string_or_null($name) . ".", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 74, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
 		}
 		if(!$namespace->trellises->exists($name)) {
 			if(!$throw_exception_on_missing) {
 				return null;
 			}
-			throw new HException(new HException("Could not find trellis named: " . _hx_string_or_null($name) . ".", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 66, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
+			throw new HException(new HException("Could not find trellis named: " . _hx_string_or_null($name) . ".", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 80, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
 		}
 		return $namespace->trellises->get($name);
 	}

@@ -5,7 +5,7 @@ class metahub_schema_Property {
 		if(!php_Boot::$skip_constructor) {
 		$this->ports = new _hx_array(array());
 		$this->multiple = false;
-		$this->type = Reflect::field(_hx_qtype("metahub.schema.Types"), $source->type);
+		$this->type = Reflect::field(_hx_qtype("metahub.schema._Kind.Kind_Impl_"), $source->type);
 		if(_hx_field($source, "default_value") !== null) {
 			$this->default_value = $source->default_value;
 		}

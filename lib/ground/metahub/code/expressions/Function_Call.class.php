@@ -10,7 +10,7 @@ class metahub_code_expressions_Function_Call implements metahub_code_expressions
 	public $inputs;
 	public $trellis;
 	public function resolve($scope) {
-		throw new HException(new HException("Code not written for imperative function calls.", null, null, _hx_anonymous(array("fileName" => "Function_Call.hx", "lineNumber" => 20, "className" => "metahub.code.expressions.Function_Call", "methodName" => "resolve"))));
+		throw new HException(new HException("Code not written for imperative function calls.", null, null, _hx_anonymous(array("fileName" => "Function_Call.hx", "lineNumber" => 21, "className" => "metahub.code.expressions.Function_Call", "methodName" => "resolve"))));
 	}
 	public function to_port($scope) {
 		$node = $scope->hub->create_node($this->trellis);
@@ -26,7 +26,7 @@ class metahub_code_expressions_Function_Call implements metahub_code_expressions
 					$target = $ports[$i];
 				}
 				$source = _hx_array_get($expressions, $i)->to_port($scope);
-				$target->add_dependency($source);
+				$target->add_dependency($source, 0);
 				unset($source,$i);
 			}
 		}

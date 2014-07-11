@@ -121,13 +121,13 @@ class metahub_parser_MetaHub_Context extends metahub_parser_Context {
 		return _hx_anonymous(array("type" => "literal", "value" => $data));
 	}
 	static function trellis_scope($data) {
-		return _hx_anonymous(array("type" => "trellis_scope", "path" => (new _hx_array(array($data[0]))), "statements" => $data[2]));
+		return _hx_anonymous(array("type" => "trellis_scope", "path" => $data[0], "statements" => $data[2]));
 	}
 	static function constraint_block($data) {
 		return $data[2];
 	}
 	static function constraint($data) {
-		return _hx_anonymous(array("type" => "constraint", "path" => (new _hx_array(array($data[0]))), "expression" => $data[4]));
+		return _hx_anonymous(array("type" => "constraint", "path" => (new _hx_array(array($data[0]))), "operator" => $data[2], "expression" => $data[4]));
 	}
 	function __toString() { return 'metahub.parser.MetaHub_Context'; }
 }

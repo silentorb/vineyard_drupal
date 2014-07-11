@@ -154,6 +154,6 @@ class metahub_engine_Node implements metahub_engine_INode{
 }
 function metahub_engine_Node_0(&$_g, &$_g1, &$context, &$i, &$port, &$result, $d) {
 	{
-		return $d->get_value($context);
+		return $d->dependency->get_value($context);
 	}
 }

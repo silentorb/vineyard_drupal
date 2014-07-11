@@ -78,11 +78,18 @@ class metahub_schema_Trellis {
 		}
 		return $properties->get($name);
 	}
+	public function get_property_or_null($name) {
+		$properties = $this->get_all_properties();
+		if(!$properties->exists($name)) {
+			return null;
+		}
+		return $properties->get($name);
+	}
 	public function get_value($index) {
-		throw new HException(new HException("Cannot get value of a trellis property.", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 72, "className" => "metahub.schema.Trellis", "methodName" => "get_value"))));
+		throw new HException(new HException("Cannot get value of a trellis property.", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 80, "className" => "metahub.schema.Trellis", "methodName" => "get_value"))));
 	}
 	public function set_value($index, $value) {
-		throw new HException(new HException("Cannot set value of a trellis property.", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 76, "className" => "metahub.schema.Trellis", "methodName" => "set_value"))));
+		throw new HException(new HException("Cannot set value of a trellis property.", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 84, "className" => "metahub.schema.Trellis", "methodName" => "set_value"))));
 	}
 	public function get_tree() {
 		$trellis = $this;
