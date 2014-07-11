@@ -143,7 +143,11 @@ SQL;
 
         $id = $query->trellis->get_identity($entity);
         $result = db_query($sql, array(':id' => $id));
-        $entity->{$property->name} = (int)$result->fetchField(0);
+        $value = (int)$result->fetchField(0);
+        if (!$value)
+          $value = null;
+        
+        $entity->{$property->name} = $value;
       }
     }
   }
