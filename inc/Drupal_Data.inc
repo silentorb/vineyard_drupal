@@ -21,7 +21,7 @@ class Drupal_Data implements ground_IStorage {
             $entity_query->fieldCondition($path[0], 'tid', $filter->value);
           }
         } else {
-          $entity_query->fieldCondition($path[0], $filter->value);
+          $entity_query->fieldCondition($path[0], 'value', $filter->value);
         }
       } else {
         $entity_query->propertyCondition($path[0], $filter->value);
