@@ -134,10 +134,11 @@ class Drupal_Data implements ground_IStorage {
 
       if ($property->type == 3) { // 3: Reference
         $base_name = $property->other_property->name;
+        $field_name = 'field_' . $base_name . '_target_id';
         $sql = <<<SQL
 SELECT entity_id
 FROM field_data_field_$base_name
-WHERE field_weapons_target_id = :id
+WHERE $field_name = :id
 SQL;
 
         $id = $query->trellis->get_identity($entity);
