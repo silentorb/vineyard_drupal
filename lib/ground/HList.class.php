@@ -6,7 +6,6 @@ class HList implements IteratorAggregate{
 		$this->length = 0;
 	}}
 	public $h;
-	public $q;
 	public $length;
 	public function add($item) {
 		$x = array($item, null);
@@ -16,14 +15,6 @@ class HList implements IteratorAggregate{
 			$this->q[1] =& $x;
 		}
 		$this->q =& $x;
-		$this->length++;
-	}
-	public function push($item) {
-		$x = array($item, &$this->h);
-		$this->h =& $x;
-		if($this->q === null) {
-			$this->q =& $x;
-		}
 		$this->length++;
 	}
 	public function first() {

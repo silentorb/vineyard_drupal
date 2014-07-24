@@ -10,8 +10,15 @@ class metahub_code_expressions_Expression_Reference implements metahub_code_expr
 	public function resolve($scope) {
 		return $this->reference->resolve($scope)->id;
 	}
-	public function to_port($scope) {
-		return $this->reference->get_port($scope);
+	public function to_port($scope, $group) {
+		$port = $this->reference->get_port($scope);
+		$chain = $this->reference->chain;
+		$converter = $this->reference->create_converter($scope);
+		if($converter !== null) {
+			$converter->input_port->connect($port);
+			return $converter->output_port;
+		}
+		return $port;
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

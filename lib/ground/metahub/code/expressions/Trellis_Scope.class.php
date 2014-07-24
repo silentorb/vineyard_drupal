@@ -25,7 +25,7 @@ class metahub_code_expressions_Trellis_Scope implements metahub_code_expressions
 		}
 		return null;
 	}
-	public function to_port($scope) {
+	public function to_port($scope, $group) {
 		return null;
 	}
 	public function __call($m, $a) {

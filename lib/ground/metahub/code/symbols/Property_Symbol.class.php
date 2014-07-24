@@ -7,7 +7,7 @@ class metahub_code_symbols_Property_Symbol implements metahub_code_symbols_ISche
 	}}
 	public $property;
 	public function get_port($scope, $path = null) {
-		throw new HException(new HException("Not supported", null, null, _hx_anonymous(array("fileName" => "Property_Symbol.hx", "lineNumber" => 17, "className" => "metahub.code.symbols.Property_Symbol", "methodName" => "get_port"))));
+		throw new HException(new HException("Not supported", null, null, _hx_anonymous(array("fileName" => "Property_Symbol.hx", "lineNumber" => 18, "className" => "metahub.code.symbols.Property_Symbol", "methodName" => "get_port"))));
 	}
 	public function resolve($scope) {
 		return null;
@@ -23,6 +23,9 @@ class metahub_code_symbols_Property_Symbol implements metahub_code_symbols_ISche
 	}
 	public function get_property() {
 		return $this->property;
+	}
+	public function get_type() {
+		return metahub_code_Type_Reference::create_from_property($this->property);
 	}
 	public function create_reference($path) {
 		$trellis = $this->get_trellis();

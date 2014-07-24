@@ -1,19 +1,26 @@
 <?php
 
 class metahub_code_expressions_Function_Call implements metahub_code_expressions_Expression{
-	public function __construct($trellis, $inputs) {
+	public function __construct($func, $type, $inputs) {
 		if(!php_Boot::$skip_constructor) {
-		$this->trellis = $trellis;
+		$this->func = $func;
 		$this->inputs = $inputs;
+		$this->type = $type;
 	}}
 	public $type;
 	public $inputs;
-	public $trellis;
+	public $func;
 	public function resolve($scope) {
-		throw new HException(new HException("Code not written for imperative function calls.", null, null, _hx_anonymous(array("fileName" => "Function_Call.hx", "lineNumber" => 21, "className" => "metahub.code.expressions.Function_Call", "methodName" => "resolve"))));
+		throw new HException(new HException("Code not written for imperative function calls.", null, null, _hx_anonymous(array("fileName" => "Function_Call.hx", "lineNumber" => 24, "className" => "metahub.code.expressions.Function_Call", "methodName" => "resolve"))));
 	}
-	public function to_port($scope) {
-		$node = $scope->hub->create_node($this->trellis);
+	public function to_port($scope, $group) {
+		$hub = $scope->hub;
+		if((is_object($_t = $this->func) && !($_t instanceof Enum) ? $_t === metahub_code_functions_Functions::$equals : $_t == metahub_code_functions_Functions::$equals)) {
+			return _hx_array_get($this->inputs, 0)->to_port($scope, $group);
+		}
+		$info = $hub->function_library->get_function_class($this->func, $this->type->type);
+		$node = Type::createInstance($info->type, (new _hx_array(array($hub, $hub->nodes->length, $info->trellis))));
+		$hub->add_internal_node($node);
 		$expressions = $this->inputs;
 		$ports = $node->get_inputs();
 		$target = null;
@@ -25,8 +32,8 @@ class metahub_code_expressions_Function_Call implements metahub_code_expressions
 				if($i < $ports->length) {
 					$target = $ports[$i];
 				}
-				$source = _hx_array_get($expressions, $i)->to_port($scope);
-				$target->add_dependency($source, 0);
+				$source = _hx_array_get($expressions, $i)->to_port($scope, $group);
+				$target->connect($source);
 				unset($source,$i);
 			}
 		}

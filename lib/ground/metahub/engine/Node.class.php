@@ -4,33 +4,29 @@ class metahub_engine_Node implements metahub_engine_INode{
 	public function __construct($hub, $id, $trellis) {
 		if(!php_Boot::$skip_constructor) {
 		$this->ports = new _hx_array(array());
-		$this->values = new _hx_array(array());
 		$this->hub = $hub;
 		$this->id = $id;
 		$this->trellis = $trellis;
-		{
-			$_g = 0;
-			$_g1 = $trellis->properties;
-			while($_g < $_g1->length) {
-				$property = $_g1[$_g];
-				++$_g;
-				$this->values->push($property->get_default());
-				$port = null;
-				if((is_object($_t = $property->type) && !($_t instanceof Enum) ? $_t === 4 : $_t == 4)) {
-					$port = new metahub_engine_List_Port($this, $hub, $property, null);
-				} else {
-					$port = new metahub_engine_Port($this, $hub, $property, $property->get_default());
-				}
-				$this->ports->push($port);
-				unset($property,$port,$_t);
+		$properties = $trellis->get_all_properties();
+		if(null == $properties) throw new HException('null iterable');
+		$__hx__it = $properties->iterator();
+		while($__hx__it->hasNext()) {
+			$property = $__hx__it->next();
+			if($property === $trellis->identity_property) {
+				continue;
 			}
+			$port = null;
+			if((is_object($_t = $property->type) && !($_t instanceof Enum) ? $_t === 4 : $_t == 4)) {
+				$port = new metahub_engine_List_Port($this, $hub, $property, null);
+			} else {
+				$port = new metahub_engine_Port($this, $hub, $property, $property->get_default());
+			}
+			$this->ports->push($port);
+			unset($port,$_t);
 		}
-		if($trellis->is_a($hub->schema->get_trellis("function", $hub->metahub_namespace, null))) {
-			$this->initialize_function();
-		}
+		$this->initialize();
 	}}
 	public $hub;
-	public $values;
 	public $ports;
 	public $id;
 	public $trellis;
@@ -38,36 +34,17 @@ class metahub_engine_Node implements metahub_engine_INode{
 	public function get_port_count() {
 		return $this->ports->length;
 	}
-	public function initialize_function() {
-		$inputs = $this->get_inputs();
-		{
-			$_g = 0;
-			while($_g < $inputs->length) {
-				$i = $inputs[$_g];
-				++$_g;
-				$input = $i;
-				$input->on_change->push((isset($this->run_function) ? $this->run_function: array($this, "run_function")));
-				unset($input,$i);
-			}
-		}
-	}
-	public function run_function($input, $value, $context) {
-		$args = $this->get_input_values($context);
-		$result = metahub_code_Function_Calls::call($this->trellis->name, $args, _hx_array_get($this->ports, 0)->get_type());
-		_hx_array_get($this->ports, 0)->set_value($result, $context);
+	public function initialize() {
 	}
 	public function get_inputs() {
+		$properties = $this->trellis->get_all_properties();
 		$result = new _hx_array(array());
-		{
-			$_g = 0;
-			$_g1 = $this->trellis->properties;
-			while($_g < $_g1->length) {
-				$property = $_g1[$_g];
-				++$_g;
-				if($property->name !== "output") {
-					$result->push($this->get_port($property->id));
-				}
-				unset($property);
+		if(null == $properties) throw new HException('null iterable');
+		$__hx__it = $properties->iterator();
+		while($__hx__it->hasNext()) {
+			$property = $__hx__it->next();
+			if($property->name !== "output") {
+				$result->push($this->get_port($property->id));
 			}
 		}
 		return $result;
@@ -81,7 +58,7 @@ class metahub_engine_Node implements metahub_engine_INode{
 	}
 	public function get_port_from_chain($chain) {
 		if($chain->length === 0) {
-			throw new HException(new HException("Cannot follow empty property chain.", null, null, _hx_anonymous(array("fileName" => "Node.hx", "lineNumber" => 82, "className" => "metahub.engine.Node", "methodName" => "get_port_from_chain"))));
+			throw new HException(new HException("Cannot follow empty property chain.", null, null, _hx_anonymous(array("fileName" => "Node.hx", "lineNumber" => 73, "className" => "metahub.engine.Node", "methodName" => "get_port_from_chain"))));
 		}
 		$current_node = $this;
 		$i = 0;
@@ -97,7 +74,7 @@ class metahub_engine_Node implements metahub_engine_INode{
 					unset($reference);
 				} else {
 					if($i < $chain->length - 1) {
-						throw new HException(new HException("Invalid chain. " . _hx_string_or_null($link->fullname()) . " is not a reference.", null, null, _hx_anonymous(array("fileName" => "Node.hx", "lineNumber" => 94, "className" => "metahub.engine.Node", "methodName" => "get_port_from_chain"))));
+						throw new HException(new HException("Invalid chain. " . _hx_string_or_null($link->fullname()) . " is not a reference.", null, null, _hx_anonymous(array("fileName" => "Node.hx", "lineNumber" => 85, "className" => "metahub.engine.Node", "methodName" => "get_port_from_chain"))));
 					}
 					return $current_node->get_port($link->id);
 				}
@@ -105,7 +82,7 @@ class metahub_engine_Node implements metahub_engine_INode{
 				unset($port,$link,$_t);
 			}
 		}
-		throw new HException(new HException("Could not follow chain", null, null, _hx_anonymous(array("fileName" => "Node.hx", "lineNumber" => 102, "className" => "metahub.engine.Node", "methodName" => "get_port_from_chain"))));
+		throw new HException(new HException("Could not follow chain", null, null, _hx_anonymous(array("fileName" => "Node.hx", "lineNumber" => 93, "className" => "metahub.engine.Node", "methodName" => "get_port_from_chain"))));
 	}
 	public function get_value($index) {
 		$port = $this->get_port($index);
@@ -121,14 +98,19 @@ class metahub_engine_Node implements metahub_engine_INode{
 		$port->set_value($value, null);
 	}
 	public function get_input_values($context) {
-		$result = new HList();
+		$result = new _hx_array(array());
 		{
 			$_g1 = 1;
 			$_g = $this->ports->length;
 			while($_g1 < $_g) {
 				$i = $_g1++;
 				$port = $this->get_port($i);
-				$value = $port->dependencies->map(array(new _hx_lambda(array(&$_g, &$_g1, &$context, &$i, &$port, &$result), "metahub_engine_Node_0"), 'execute'));
+				$value = null;
+				if($port->property->multiple) {
+					$value = $port->connections->map(array(new _hx_lambda(array(&$_g, &$_g1, &$context, &$i, &$port, &$result, &$value), "metahub_engine_Node_0"), 'execute'));
+				} else {
+					$value = _hx_array_get($port->connections, 0)->get_value($context);
+				}
 				$result->push($value);
 				unset($value,$port,$i);
 			}
@@ -152,8 +134,8 @@ class metahub_engine_Node implements metahub_engine_INode{
 	static $__properties__ = array("get_port_count" => "get_port_count");
 	function __toString() { return 'metahub.engine.Node'; }
 }
-function metahub_engine_Node_0(&$_g, &$_g1, &$context, &$i, &$port, &$result, $d) {
+function metahub_engine_Node_0(&$_g, &$_g1, &$context, &$i, &$port, &$result, &$value, $d) {
 	{
-		return $d->dependency->get_value($context);
+		return $d->get_value($context);
 	}
 }

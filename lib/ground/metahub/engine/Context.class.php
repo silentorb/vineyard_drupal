@@ -1,13 +1,16 @@
 <?php
 
 class metahub_engine_Context {
-	public function __construct($property_port, $entry_node) {
+	public function __construct($entry_node, $hub) {
 		if(!php_Boot::$skip_constructor) {
-		$this->property_port = $property_port;
-		$this->entry_node = $entry_node;
+		if($entry_node === null) {
+			throw new HException(new HException("Context node cannot be null.", null, null, _hx_anonymous(array("fileName" => "Context.hx", "lineNumber" => 17, "className" => "metahub.engine.Context", "methodName" => "new"))));
+		}
+		$this->node = $entry_node;
+		$this->hub = $hub;
 	}}
-	public $property_port;
-	public $entry_node;
+	public $node;
+	public $hub;
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
 			return call_user_func_array($this->$m, $a);

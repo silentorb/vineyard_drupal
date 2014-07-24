@@ -16,6 +16,9 @@ class metahub_code_symbols_Trellis_Symbol implements metahub_code_This, metahub_
 	public function get_port($scope, $path = null) {
 		throw new HException(new HException("Not supported", null, null, _hx_anonymous(array("fileName" => "Trellis_Symbol.hx", "lineNumber" => 27, "className" => "metahub.code.symbols.Trellis_Symbol", "methodName" => "get_port"))));
 	}
+	public function get_type() {
+		throw new HException(new HException("Trellis_Symbol.get_type() is not implemented.", null, null, _hx_anonymous(array("fileName" => "Trellis_Symbol.hx", "lineNumber" => 31, "className" => "metahub.code.symbols.Trellis_Symbol", "methodName" => "get_type"))));
+	}
 	public function resolve($scope) {
 		return null;
 	}

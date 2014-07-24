@@ -43,7 +43,7 @@ class metahub_schema_Schema {
 					$trellis = $this->add_trellis($name1, new metahub_schema_Trellis($name1, $this, $namespace));
 				}
 				$trellis->load_properties($source);
-				if($settings->auto_identity && $trellis->identity_property === null) {
+				if($settings->auto_identity && $source->primary_key === null && $source->parent === null) {
 					$identity_property = $trellis->get_property_or_null("id");
 					if($identity_property === null) {
 						$identity_property = $trellis->add_property("id", _hx_anonymous(array("type" => "int")));

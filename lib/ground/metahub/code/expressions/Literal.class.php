@@ -11,7 +11,7 @@ class metahub_code_expressions_Literal implements metahub_code_expressions_Expre
 	public function resolve($scope) {
 		return $this->value;
 	}
-	public function to_port($scope) {
+	public function to_port($scope, $group) {
 		$trellis = $scope->hub->schema->get_trellis(metahub_code_expressions_Literal::get_type_string($this->type->type), $scope->hub->metahub_namespace, null);
 		$node = $scope->hub->create_node($trellis);
 		$port = $node->get_port(0);

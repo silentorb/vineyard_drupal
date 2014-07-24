@@ -22,12 +22,15 @@ class metahub_code_symbols_Local_Symbol implements metahub_code_symbols_Symbol{
 	public function get_layer() {
 		return metahub_code_Layer::$engine;
 	}
+	public function get_type() {
+		throw new HException(new HException("Local_Symbol.get_type() is not implemented.", null, null, _hx_anonymous(array("fileName" => "Local_Symbol.hx", "lineNumber" => 40, "className" => "metahub.code.symbols.Local_Symbol", "methodName" => "get_type"))));
+	}
 	public function resolve($scope) {
 		if($this->scope_definition->depth === $scope->definition->depth) {
 			return $scope->values[$this->index];
 		}
 		if($scope->parent === null) {
-			throw new HException(new HException("Could not find scope for symbol: " . _hx_string_or_null($this->name) . ".", null, null, _hx_anonymous(array("fileName" => "Local_Symbol.hx", "lineNumber" => 43, "className" => "metahub.code.symbols.Local_Symbol", "methodName" => "resolve"))));
+			throw new HException(new HException("Could not find scope for symbol: " . _hx_string_or_null($this->name) . ".", null, null, _hx_anonymous(array("fileName" => "Local_Symbol.hx", "lineNumber" => 48, "className" => "metahub.code.symbols.Local_Symbol", "methodName" => "resolve"))));
 		}
 		return $this->resolve($scope->parent);
 	}
@@ -57,7 +60,7 @@ class metahub_code_symbols_Local_Symbol implements metahub_code_symbols_Symbol{
 			}
 			return new metahub_code_references_Port_Reference($this, $chain);
 		} else {
-			haxe_Log::trace($chain, _hx_anonymous(array("fileName" => "Local_Symbol.hx", "lineNumber" => 77, "className" => "metahub.code.symbols.Local_Symbol", "methodName" => "create_reference")));
+			haxe_Log::trace($chain, _hx_anonymous(array("fileName" => "Local_Symbol.hx", "lineNumber" => 82, "className" => "metahub.code.symbols.Local_Symbol", "methodName" => "create_reference")));
 			$last_property = $chain[$chain->length - 1];
 			if($last_property->other_trellis === null) {
 				return new metahub_code_references_Node_Reference($this, $chain);

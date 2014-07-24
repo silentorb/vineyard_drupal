@@ -24,7 +24,7 @@ class metahub_code_expressions_Block implements metahub_code_expressions_Express
 		}
 		return null;
 	}
-	public function to_port($scope) {
+	public function to_port($scope, $group) {
 		return null;
 	}
 	public function __call($m, $a) {

@@ -16,11 +16,11 @@ class metahub_schema_Trellis {
 	public $name;
 	public $schema;
 	public $properties;
-	public $property_keys;
 	public $parent;
 	public $id;
 	public $identity_property;
 	public $namespace;
+	public $property_keys;
 	public function add_property($name, $source) {
 		$property = new metahub_schema_Property($name, $source, $this);
 		{

@@ -23,7 +23,7 @@ class metahub_code_expressions_Create_Node implements metahub_code_expressions_E
 		}
 		return $node->id;
 	}
-	public function to_port($scope) {
+	public function to_port($scope, $group) {
 		return null;
 	}
 	public function __call($m, $a) {

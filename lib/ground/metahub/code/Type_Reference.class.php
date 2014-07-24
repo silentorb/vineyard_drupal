@@ -22,5 +22,8 @@ class metahub_code_Type_Reference {
 		$type_id = Reflect::field(_hx_qtype("metahub.schema.Types"), $name);
 		return new metahub_code_Type_Reference($type_id, null);
 	}
+	static function create_from_property($property) {
+		return new metahub_code_Type_Reference($property->type, $property->other_trellis);
+	}
 	function __toString() { return 'metahub.code.Type_Reference'; }
 }

@@ -31,7 +31,7 @@ class metahub_schema_Property_Chain_Helper {
 		}
 		return $result;
 	}
-	static function perform($chain, $node, $action, $start = null) {
+	static function perform($chain, $node, $hub, $action, $start = null) {
 		if($start === null) {
 			$start = 0;
 		}
@@ -49,7 +49,7 @@ class metahub_schema_Property_Chain_Helper {
 						while($_g2 < $array->length) {
 							$j = $array[$_g2];
 							++$_g2;
-							metahub_schema_Property_Chain_Helper::perform($chain, $node->hub->get_node($j), $action, $i + 1);
+							metahub_schema_Property_Chain_Helper::perform($chain, $hub->get_node($j), $hub, $action, $i + 1);
 							unset($j);
 						}
 						unset($_g2);
@@ -59,10 +59,10 @@ class metahub_schema_Property_Chain_Helper {
 				} else {
 					if((is_object($_t2 = $link->type) && !($_t2 instanceof Enum) ? $_t2 === 3 : $_t2 == 3)) {
 						$id = $node->get_value($link->id);
-						$node = $node->hub->nodes[$id];
+						$node = $hub->nodes[$id];
 						unset($id);
 					} else {
-						throw new HException(new HException("Not supported: " . _hx_string_or_null($link->name), null, null, _hx_anonymous(array("fileName" => "Property_Chain.hx", "lineNumber" => 61, "className" => "metahub.schema.Property_Chain_Helper", "methodName" => "perform"))));
+						throw new HException(new HException("Not supported: " . _hx_string_or_null($link->name), null, null, _hx_anonymous(array("fileName" => "Property_Chain.hx", "lineNumber" => 62, "className" => "metahub.schema.Property_Chain_Helper", "methodName" => "perform"))));
 					}
 					unset($_t2);
 				}

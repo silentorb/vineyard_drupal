@@ -4,15 +4,21 @@ class Vineyard {
   public $hub;
   public $ground;
   public $namespace;
+  private $operator;
 
   function __construct() {
     $this->hub = new metahub_Hub();
-    $this->ground = new ground_Ground($this->hub, new Drupal_Data());
+    $this->operator = new Drupal_Data($this);
+    $this->ground = new ground_Ground($this->hub, $this->operator);
     $this->namespace = $this->hub->schema->add_namespace('vineyard');
   }
 
   function load_schema_from_file($filename) {
-    $this->hub->load_schema_from_file($filename, $this->namespace, true);
+    $data = metahub_Utility::load_json($filename);
+    $this->hub->load_schema_from_object($data, $this->namespace, true);
+    if (isset($data->drupal)) {
+      $this->operator->drupal_schema = $data->drupal;
+    }
   }
 
   private function query($source, $result) {
@@ -71,6 +77,9 @@ class Vineyard {
       if (is_string($ex)) {
         $code = '500';
         drupal_add_http_header('Status', $code . ' Server Error');
+        if (user_access('administer permissions')) {
+          $result->message = $ex;
+        }
       } else {
         $code = $ex->getCode();
         if (!$code)

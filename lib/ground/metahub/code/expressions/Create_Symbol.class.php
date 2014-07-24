@@ -15,7 +15,7 @@ class metahub_code_expressions_Create_Symbol implements metahub_code_expressions
 		$scope->set_value($this->symbol->index, $value);
 		return $value;
 	}
-	public function to_port($scope) {
+	public function to_port($scope, $group) {
 		return null;
 	}
 	public function __call($m, $a) {

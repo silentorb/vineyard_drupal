@@ -3,6 +3,25 @@
 class metahub_parser_MetaHub_Context extends metahub_parser_Context {
 	public function __construct($definition) { if(!php_Boot::$skip_constructor) {
 		parent::__construct($definition);
+		if(metahub_parser_MetaHub_Context::$function_map === null) {
+			metahub_parser_MetaHub_Context::$function_map = new haxe_ds_StringMap();
+			$map = _hx_anonymous(array("+" => metahub_code_functions_Functions::$add, "-" => metahub_code_functions_Functions::$subtract, "=" => metahub_code_functions_Functions::$equals, "<" => metahub_code_functions_Functions::$lesser_than, ">" => metahub_code_functions_Functions::$greater_than, "<=" => metahub_code_functions_Functions::$lesser_than_or_equal_to, ">=" => metahub_code_functions_Functions::$greater_than_or_equal_to));
+			{
+				$_g = 0;
+				$_g1 = Reflect::fields($map);
+				while($_g < $_g1->length) {
+					$i = $_g1[$_g];
+					++$_g;
+					{
+						$v = Reflect::field($map, $i);
+						metahub_parser_MetaHub_Context::$function_map->set($i, $v);
+						$v;
+						unset($v);
+					}
+					unset($i);
+				}
+			}
+		}
 	}}
 	public function perform_action($name, $data, $match) {
 		$name1 = $match->pattern->name;
@@ -58,6 +77,7 @@ class metahub_parser_MetaHub_Context extends metahub_parser_Context {
 		}
 		return $data;
 	}
+	static $function_map;
 	static function start($data) {
 		return _hx_anonymous(array("type" => "block", "expressions" => $data[1]));
 	}
@@ -127,7 +147,7 @@ class metahub_parser_MetaHub_Context extends metahub_parser_Context {
 		return $data[2];
 	}
 	static function constraint($data) {
-		return _hx_anonymous(array("type" => "constraint", "path" => (new _hx_array(array($data[0]))), "operator" => $data[2], "expression" => $data[4]));
+		return _hx_anonymous(array("type" => "constraint", "path" => (new _hx_array(array($data[0]))), "expression" => _hx_anonymous(array("type" => "function", "name" => Std::string(metahub_parser_MetaHub_Context::$function_map->get($data[2])), "inputs" => (new _hx_array(array($data[4])))))));
 	}
 	function __toString() { return 'metahub.parser.MetaHub_Context'; }
 }

@@ -16,6 +16,9 @@ class haxe_ds_IntMap implements IMap, IteratorAggregate{
 			return null;
 		}
 	}
+	public function exists($key) {
+		return array_key_exists($key, $this->h);
+	}
 	public function keys() {
 		return new _hx_array_iterator(array_keys($this->h));
 	}

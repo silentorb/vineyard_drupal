@@ -2,9 +2,8 @@
 
 interface metahub_engine_IPort {
 	//;
-	//;
-	function add_dependency($other, $operator);
-	function get_value($context = null);
-	function set_value($v, $context = null);
+	function connect($other);
+	function get_value($context);
+	function set_value($v, $context);
 	function get_type();
 }

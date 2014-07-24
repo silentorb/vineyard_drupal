@@ -2,7 +2,7 @@
 
 class metahub_schema__Kind_Kind_Impl_ {
 	public function __construct(){}
-	static $void;
+	static $any;
 	static $int;
 	static $string;
 	static $reference;
@@ -12,7 +12,7 @@ class metahub_schema__Kind_Kind_Impl_ {
 	static $unknown;
 	function __toString() { return 'metahub.schema._Kind.Kind_Impl_'; }
 }
-metahub_schema__Kind_Kind_Impl_::$void = 0;
+metahub_schema__Kind_Kind_Impl_::$any = 0;
 metahub_schema__Kind_Kind_Impl_::$int = 1;
 metahub_schema__Kind_Kind_Impl_::$string = 2;
 metahub_schema__Kind_Kind_Impl_::$reference = 3;

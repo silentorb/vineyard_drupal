@@ -25,5 +25,29 @@ class Reflect {
 			}
 		}
 	}
+	static function isFunction($f) {
+		return (is_array($f) && is_callable($f)) || _hx_is_lambda($f) || is_array($f) && Reflect_0($f) && $f[1] !== "length";
+	}
+	static function compare($a, $b) {
+		if((is_object($_t = $a) && !($_t instanceof Enum) ? $_t === $b : $_t == $b)) {
+			return 0;
+		} else {
+			if($a > $b) {
+				return 1;
+			} else {
+				return -1;
+			}
+		}
+	}
+	static function isEnumValue($v) {
+		return $v instanceof _hx_enum;
+	}
 	function __toString() { return 'Reflect'; }
+}
+function Reflect_0(&$f) {
+	{
+		$o = $f[0];
+		$field = $f[1];
+		return _hx_has_field($o, $field);
+	}
 }

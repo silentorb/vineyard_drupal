@@ -5,7 +5,7 @@ class metahub_code_references_Node_Reference extends metahub_code_references_Ref
 		parent::__construct($symbol,$chain);
 	}}
 	public function get_port($scope) {
-		throw new HException(new HException("Not implemented yet.", null, null, _hx_anonymous(array("fileName" => "Node_Reference.hx", "lineNumber" => 14, "className" => "metahub.code.references.Node_Reference", "methodName" => "get_port"))));
+		throw new HException(new HException("Not implemented yet.", null, null, _hx_anonymous(array("fileName" => "Node_Reference.hx", "lineNumber" => 15, "className" => "metahub.code.references.Node_Reference", "methodName" => "get_port"))));
 	}
 	public function resolve($scope) {
 		return $this->get_node($scope);
