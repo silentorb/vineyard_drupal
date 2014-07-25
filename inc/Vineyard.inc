@@ -22,6 +22,12 @@ class Vineyard {
   }
 
   private function query($source, $result) {
+    if (!isset($source->version))
+      throw new Exception("Missing version property.  Should be 0.1");
+
+    if ((float)$source->version !== 0.1)
+      throw new Exception("Only supported version is currently 0.1, not " . $source->version);
+
     if (!isset($source->filters))
       $source->filters = null;
 

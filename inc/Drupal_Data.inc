@@ -8,58 +8,59 @@ class Drupal_Data implements ground_IStorage {
   function __construct($vineyard) {
     $this->vineyard = $vineyard;
   }
-/*
-  private function process_filters($query, $entity_query, $trellis_map) {
-    if (!isset($query->filters) || !is_array($query->filters))
-      return;
 
-    $properties = $query->trellis->get_all_properties();
-
-    foreach ($query->filters as $filter) {
-      $path = explode('.', $filter->path);
-
-      $mapping = count($path) == 1 && isset($properties->h{$path[0]})
-        ? Drupal_Data::get_property_info($trellis_map, $properties->h->{$path[0]})
-        : null;
-
-//      if ($mapping && $mapping->type == 'flag') {
-//        $entity_query->entityCondition('entity_type', 'flagging')
-//          ->entityCondition('bundle', $mapping->source);
-//      }
-
-      $info = field_info_field($path[0]);
-
-      if ($info) {
-        if ($info['module'] == 'taxonomy') {
-          if (isset($path[1]) && $path[1] == 'name') {
-            $value = taxonomy_get_term_by_name($filter->value);
-            if (count($value) == 0)
-              throw new Exception("Could not find tag $filter->value.");
-
-            $entity_query->fieldCondition($path[0], 'tid', $value[1]->tid);
+  /*
+    private function process_filters($query, $entity_query, $trellis_map) {
+      if (!isset($query->filters) || !is_array($query->filters))
+        return;
+  
+      $properties = $query->trellis->get_all_properties();
+  
+      foreach ($query->filters as $filter) {
+        $path = explode('.', $filter->path);
+  
+        $mapping = count($path) == 1 && isset($properties->h{$path[0]})
+          ? Drupal_Data::get_property_info($trellis_map, $properties->h->{$path[0]})
+          : null;
+  
+  //      if ($mapping && $mapping->type == 'flag') {
+  //        $entity_query->entityCondition('entity_type', 'flagging')
+  //          ->entityCondition('bundle', $mapping->source);
+  //      }
+  
+        $info = field_info_field($path[0]);
+  
+        if ($info) {
+          if ($info['module'] == 'taxonomy') {
+            if (isset($path[1]) && $path[1] == 'name') {
+              $value = taxonomy_get_term_by_name($filter->value);
+              if (count($value) == 0)
+                throw new Exception("Could not find tag $filter->value.");
+  
+              $entity_query->fieldCondition($path[0], 'tid', $value[1]->tid);
+            } else {
+              $entity_query->fieldCondition($path[0], 'tid', $filter->value);
+            }
           } else {
-            $entity_query->fieldCondition($path[0], 'tid', $filter->value);
+            $entity_query->fieldCondition($path[0], 'value', $filter->value);
           }
         } else {
-          $entity_query->fieldCondition($path[0], 'value', $filter->value);
+          $entity_query->propertyCondition($path[0], $filter->value);
         }
-      } else {
-        $entity_query->propertyCondition($path[0], $filter->value);
+  
       }
-
     }
-  }
-
-  private function process_sorts($query, $entity_query) {
-    if (!isset($query->sorts) || !is_array($query->sorts))
-      return;
-
-    foreach ($query->sorts as $sort) {
-      $dir = isset($sort->dir) ? $sort->dir : 'DESC';
-      $entity_query->propertyOrderBy($sort->path, $dir);
+  
+    private function process_sorts($query, $entity_query) {
+      if (!isset($query->sorts) || !is_array($query->sorts))
+        return;
+  
+      foreach ($query->sorts as $sort) {
+        $dir = isset($sort->dir) ? $sort->dir : 'DESC';
+        $entity_query->propertyOrderBy($sort->path, $dir);
+      }
     }
-  }
-*/
+  */
   function run_query($query, $response) {
     $trellis_map = property_exists($this->drupal_schema, $query->trellis->name)
       ? $this->drupal_schema->{$query->trellis->name}
@@ -86,33 +87,34 @@ class Drupal_Data implements ground_IStorage {
       }
     }
   }
-/*
-  function get_nids_using_entity_query($query, $entity_type, $trellis_map) {
-    $entity_query = new EntityFieldQuery();
-    $entity_query
-      ->entityCondition('entity_type', $entity_type);
 
-    if ($entity_type == 'node') {
-      $entity_query->propertyCondition('status', 1)
-        ->entityCondition('bundle', $query->trellis->name);
+  /*
+    function get_nids_using_entity_query($query, $entity_type, $trellis_map) {
+      $entity_query = new EntityFieldQuery();
+      $entity_query
+        ->entityCondition('entity_type', $entity_type);
+  
+      if ($entity_type == 'node') {
+        $entity_query->propertyCondition('status', 1)
+          ->entityCondition('bundle', $query->trellis->name);
+      }
+  
+      $this->process_filters($query, $entity_query, $trellis_map);
+      $this->process_sorts($query, $entity_query);
+  
+      if (isset($query->range)) {
+        $start = isset($query->range->start) ? $query->range->start : 0;
+        $length = isset($query->range->length) ? $query->range->length : 0;
+        $entity_query->range($start, $length);
+      }
+  
+      $result = $entity_query->execute();
+  
+      return isset($result[$entity_type])
+        ? array_keys($result[$entity_type])
+        : array();
     }
-
-    $this->process_filters($query, $entity_query, $trellis_map);
-    $this->process_sorts($query, $entity_query);
-
-    if (isset($query->range)) {
-      $start = isset($query->range->start) ? $query->range->start : 0;
-      $length = isset($query->range->length) ? $query->range->length : 0;
-      $entity_query->range($start, $length);
-    }
-
-    $result = $entity_query->execute();
-
-    return isset($result[$entity_type])
-      ? array_keys($result[$entity_type])
-      : array();
-  }
-*/
+  */
   function filter_by_view($query, &$options, $info) {
     if (!isset($query->filters) || !is_array($query->filters))
       return;
@@ -122,8 +124,9 @@ class Drupal_Data implements ground_IStorage {
     foreach ($query->filters as $filter) {
       $path = explode('.', $filter->path);
       $name = $path[0];
+      $filter->operator = isset($filter->operator) ? $filter->operator : "=";
 
-      if (isset($filter->operator) && $filter->operator == 'proximity') {
+      if ($filter->operator == 'proximity') {
         $options['filters']['field_geofield_distance'] = $this->proximity($path, $filter);
         continue;
       }
@@ -136,9 +139,13 @@ class Drupal_Data implements ground_IStorage {
           $this->add_flag_filter($name, $filter->value, $options);
           continue;
         }
-      }
+      } else {
+        if ($field_info['module'] == 'taxonomy') {
+          $this->taxonomy($name, $filter, $options);
+        }
 
-      $this->add_standard_field_filter($name, $filter, $options, $info);
+        $this->add_standard_field_filter($name, $filter, $options, $info);
+      }
     }
   }
 
@@ -150,7 +157,7 @@ class Drupal_Data implements ground_IStorage {
       'field' => $name,
       'relationship' => 'none',
       'group_type' => 'group',
-      'operator' => isset($filter->operator) ? $filter->operator : '=',
+      'operator' => $filter->operator,
       'value' => $filter->value,
       'exposed' => false,
       'is_grouped' => false,
@@ -249,14 +256,7 @@ class Drupal_Data implements ground_IStorage {
         'type' => 'views_query',
         'options' => array(),
       ),
-      'filters' => array(),
-      'row_plugin' => 'fields',
-      'access' => array(
-        'type' => 'perm'
-      ),
-      'exposed_form' => array(
-        'type' => 'basic'
-      )
+      'filters' => array()
     );
 
     $options['fields'][$view->base_field] = array(
@@ -267,6 +267,13 @@ class Drupal_Data implements ground_IStorage {
 
 
     $this->filter_by_view($query, $options, $info);
+
+    if (isset($query->range)) {
+      $this->add_range($query->range, $options);
+    }
+
+    $this->sort($query, $options, $info);
+
     $view->display['default']->display_options = $options;
 //    if (isset($_GET['view'])) {
 //      $view2 = views_get_view($_GET['view']);
@@ -363,6 +370,33 @@ class Drupal_Data implements ground_IStorage {
     }
   }
 
+  private function add_range($range, &$options) {
+    $start = isset($range->start) ? $range->start : 0;
+    $length = isset($range->length) ? $range->length : 0;
+    $options['pager'] = array(
+      'type' => 'some',
+      'options' => array(
+        'items_per_page' => $length,
+        'offset' => $start,
+      ),
+    );
+  }
+
+  private function sort($query, &$options, $info) {
+    if (!isset($query->sorts) || !is_array($query->sorts))
+      return;
+
+    foreach ($query->sorts as $sort) {
+      $dir = isset($sort->dir) ? $sort->dir : 'DESC';
+      $options['sorts'][$sort->path] = array(
+        'id' => $sort->path,
+        'table' => $info['base table'],
+        'field' => $sort->path,
+        'order' => $dir,
+      );
+    }
+  }
+
   function get_links($entity, $query) {
     $properties = $query->trellis->get_all_properties();
     foreach ($properties->h as $property) {
@@ -390,5 +424,30 @@ SQL;
         $entity->{$property->name} = $value;
       }
     }
+  }
+
+  function taxonomy($path, $filter, &$options) {
+    $relationship_name = 'term_relationship_' . $path[0];
+    $options['relationships'][$relationship_name] = array(
+      'id' => 'field_tags_tid',
+      'table' => 'field_data_field_tags',
+      'field' => 'field_tags_tid',
+      'relationship' => 'none',
+    );
+
+    $key = isset($path[1]) && $path[0] == 'name'
+      ? 'name'
+      : 'tid';
+
+    $options['filters'][$path[0]] = array(
+      'id' => $key,
+      'table' => 'taxonomy_term_data',
+      'field' => $key,
+      'relationship' => $relationship_name,
+      'operator' => $filter->operator,
+      'value' => $filter->value,
+      'exposed' => false,
+      'is_grouped' => false,
+    );
   }
 }
