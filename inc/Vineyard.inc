@@ -16,9 +16,9 @@ class Vineyard {
   function load_schema_from_file($filename) {
     $data = metahub_Utility::load_json($filename);
     $this->hub->load_schema_from_object($data, $this->namespace, true);
-    if (isset($data->drupal)) {
-      $this->operator->drupal_schema = $data->drupal;
-    }
+    $this->operator->drupal_schema = isset($data->drupal)
+      ? $data->drupal
+      : new stdClass();
   }
 
   private function query($source, $result) {
