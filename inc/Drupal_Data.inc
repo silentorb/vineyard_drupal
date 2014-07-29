@@ -66,19 +66,21 @@ class Drupal_Data implements ground_IStorage {
       ? $this->drupal_schema->{$query->trellis->name}
       : null;
 
+    $name = $trellis_map && isset($trellis_map->name) ? $trellis_map->name : $query->trellis->name;
+
     $response->objects = array();
     $entity_type = 'node';
     $entity_info = entity_get_info();
     $info = null;
-    if (array_key_exists($query->trellis->name, $entity_info)) {
-      $entity_type = $query->trellis->name;
-      $info = $entity_info[$query->trellis->name];
+    if (array_key_exists($name, $entity_info)) {
+      $entity_type = $name;
+      $info = $entity_info[$name];
     } else {
       $info = $entity_info['node'];
     }
 
 //    $nids = get_nids_using_entity_query($query, $entity_type, $trellis_map);
-    $nids = $this->get_nids_using_view($query, $entity_type, $trellis_map, $response, $info);
+    $nids = $this->get_nids_using_view($query, $trellis_map, $response, $info);
 
     if (count($nids) > 0) {
       $entities = entity_load($entity_type, $nids);
@@ -126,7 +128,7 @@ class Drupal_Data implements ground_IStorage {
       $name = $path[0];
       $filter->operator = isset($filter->operator) ? $filter->operator : "=";
 
-      if ($filter->operator == 'proximity') {
+      if ($filter->operator == 'distance') {
         $options['filters']['field_geofield_distance'] = $this->proximity($path, $filter);
         continue;
       }
@@ -202,7 +204,7 @@ class Drupal_Data implements ground_IStorage {
       'ui_name' => '',
       'operator' => '<=',
       'value' => array(
-        'distance' => $value->distance,
+        'distance' => $value->max,
         'unit' => '3959',
         'origin' => array(
           'lat' => $value->lat,
@@ -238,7 +240,7 @@ class Drupal_Data implements ground_IStorage {
     );
   }
 
-  function get_nids_using_view($query, $entity_type, $trellis_map, $response, $info) {
+  function get_nids_using_view($query, $trellis_map, $response, $info) {
     if (isset($_GET['debug-view'])) {
       $view = views_get_view($_GET['debug-view']);
       print var_export($view->display['default']->display_options);
