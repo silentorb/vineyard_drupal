@@ -267,11 +267,10 @@ class Drupal_Data implements ground_IStorage {
       'id' => $view->base_field,
     );
 
-
     $this->filter_by_view($query, $options, $info);
 
-    if (isset($query->range)) {
-      $this->add_range($query->range, $options);
+    if (isset($query)) {
+      $this->add_range($query, $options);
     }
 
     $this->sort($query, $options, $info);
@@ -372,9 +371,9 @@ class Drupal_Data implements ground_IStorage {
     }
   }
 
-  private function add_range($range, &$options) {
-    $start = isset($range->start) ? $range->start : 0;
-    $length = isset($range->length) ? $range->length : 0;
+  private function add_range($query, &$options) {
+    $start = isset($query->range) && isset($query->range->start) ? $query->range->start : 0;
+    $length = isset($query->length) && isset($query->range->length) ? $query->range->length : 0;
     $options['pager'] = array(
       'type' => 'some',
       'options' => array(
@@ -408,7 +407,7 @@ class Drupal_Data implements ground_IStorage {
       if (!isset($property->other_property))
         continue;
 
-      if ($property->other_property->type == 3) { // 3: Reference
+      if ($property->other_property->type == 4) { // 3: Reference
         $base_name = $property->name;
         $field_name = 'field_' . $base_name . '_target_id';
         $sql = <<<SQL
