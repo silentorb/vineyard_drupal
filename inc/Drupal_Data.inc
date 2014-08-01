@@ -66,21 +66,21 @@ class Drupal_Data implements ground_IStorage {
       ? $this->drupal_schema->{$query->trellis->name}
       : null;
 
-    $name = $trellis_map && isset($trellis_map->name) ? $trellis_map->name : $query->trellis->name;
+    $entity_name = $trellis_map && isset($trellis_map->name) ? $trellis_map->name : $query->trellis->name;
 
     $response->objects = array();
     $entity_type = 'node';
     $entity_info = entity_get_info();
     $info = null;
-    if (array_key_exists($name, $entity_info)) {
-      $entity_type = $name;
-      $info = $entity_info[$name];
+    if (array_key_exists($entity_name, $entity_info)) {
+      $entity_type = $entity_name;
+      $info = $entity_info[$entity_name];
     } else {
       $info = $entity_info['node'];
     }
 
 //    $nids = get_nids_using_entity_query($query, $entity_type, $trellis_map);
-    $nids = $this->get_nids_using_view($query, $trellis_map, $response, $info);
+    $nids = $this->get_nids_using_view($query, $entity_name, $response, $info);
 
     if (count($nids) > 0) {
       $entities = entity_load($entity_type, $nids);
@@ -117,7 +117,13 @@ class Drupal_Data implements ground_IStorage {
         : array();
     }
   */
-  function filter_by_view($query, &$options, $info) {
+  function filter_by_view($query, &$options, $info, $entity_name) {
+    if ($info['base table'] == 'node') {
+      $filter = new stdClass();
+      $filter->value = $entity_name;
+      $this->add_standard_field_filter("type", $filter, $options, $info);
+    }
+
     if (!isset($query->filters) || !is_array($query->filters))
       return;
 
@@ -126,9 +132,8 @@ class Drupal_Data implements ground_IStorage {
     foreach ($query->filters as $filter) {
       $path = explode('.', $filter->path);
       $name = $path[0];
-      $filter->operator = isset($filter->operator) ? $filter->operator : "=";
 
-      if ($filter->operator == 'distance') {
+      if (isset($filter->operator) && $filter->operator == 'distance') {
         $options['filters']['field_geofield_distance'] = $this->proximity($path, $filter);
         continue;
       }
@@ -145,25 +150,30 @@ class Drupal_Data implements ground_IStorage {
         if ($field_info['module'] == 'taxonomy') {
           $this->taxonomy($name, $filter, $options);
         }
-
-        $this->add_standard_field_filter($name, $filter, $options, $info);
       }
     }
+
+    $this->add_standard_field_filter($name, $filter, $options, $info);
   }
 
   function add_standard_field_filter($name, $filter, &$options, $info) {
 //    $filter_name = $name . (count($options['filters']) + 1);
-    $options['filters'][$name] = array(
+    $value = $filter->value;
+    if ($info['base table'] == 'node' && $name == 'type') {
+      $value = array();
+      $value[$filter->value] = $filter->value;
+    }
+    $result = array(
       'id' => $name,
       'table' => $info['base table'],
       'field' => $name,
-      'relationship' => 'none',
-      'group_type' => 'group',
-      'operator' => $filter->operator,
-      'value' => $filter->value,
-      'exposed' => false,
-      'is_grouped' => false,
+//      'operator' => $filter->operator,
+      'value' => is_int($value) ? (string)$value : $value,
     );
+    if (isset($filter->operator))
+       $result->operator = $filter->operator;
+
+    $options['filters'][$name] = $result;
   }
 
   function add_flag_filter($name, $value, &$options) {
@@ -240,7 +250,7 @@ class Drupal_Data implements ground_IStorage {
     );
   }
 
-  function get_nids_using_view($query, $trellis_map, $response, $info) {
+  function get_nids_using_view($query, $entity_name, $response, $info) {
     if (isset($_GET['debug-view'])) {
       $view = views_get_view($_GET['debug-view']);
       print var_export($view->display['default']->display_options);
@@ -267,8 +277,7 @@ class Drupal_Data implements ground_IStorage {
       'id' => $view->base_field,
     );
 
-    $this->filter_by_view($query, $options, $info);
-
+    $this->filter_by_view($query, $options, $info, $entity_name);
     if (isset($query)) {
       $this->add_range($query, $options);
     }
@@ -440,15 +449,18 @@ SQL;
       ? 'name'
       : 'tid';
 
-    $options['filters'][$path[0]] = array(
+    $result = array(
       'id' => $key,
       'table' => 'taxonomy_term_data',
       'field' => $key,
       'relationship' => $relationship_name,
-      'operator' => $filter->operator,
       'value' => $filter->value,
       'exposed' => false,
       'is_grouped' => false,
     );
+    if (isset($filter->operator))
+      $result->operator = $filter->operator;
+
+    $options['filters'][$path[0]] = $result;
   }
 }
