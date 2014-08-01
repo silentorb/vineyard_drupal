@@ -61,13 +61,33 @@ class Drupal_Data implements ground_IStorage {
       }
     }
   */
-  function run_query($query, $response) {
-    $trellis_map = property_exists($this->drupal_schema, $query->trellis->name)
-      ? $this->drupal_schema->{$query->trellis->name}
+
+  function get_entity_info($trellis_name) {
+    $entity_name = $this->get_entity_name($trellis_name);
+
+    $entity_info = entity_get_info();
+    $info = null;
+    if (array_key_exists($entity_name, $entity_info)) {
+      return $entity_info[$entity_name];
+    } else {
+      return $entity_info['node'];
+    }
+  }
+
+  function get_trellis_map($trellis_name) {
+    return property_exists($this->drupal_schema, $trellis_name)
+      ? $this->drupal_schema->{$trellis_name}
       : null;
+  }
 
-    $entity_name = $trellis_map && isset($trellis_map->name) ? $trellis_map->name : $query->trellis->name;
+  function get_entity_name($trellis_name) {
+    $trellis_map = $this->get_trellis_map($trellis_name);
 
+    return $trellis_map && isset($trellis_map->name) ? $trellis_map->name : $trellis_name;
+  }
+
+  function run_query($query, $response) {
+    $entity_name = $this->get_entity_name($query->trellis->name);
     $response->objects = array();
     $entity_type = 'node';
     $entity_info = entity_get_info();
@@ -85,7 +105,7 @@ class Drupal_Data implements ground_IStorage {
     if (count($nids) > 0) {
       $entities = entity_load($entity_type, $nids);
       foreach ($entities as $entity) {
-        $response->objects[] = $this->post_process($entity, $query, $trellis_map);
+        $response->objects[] = $this->post_process($entity, $query);
       }
     }
   }
@@ -171,7 +191,7 @@ class Drupal_Data implements ground_IStorage {
       'value' => is_int($value) ? (string)$value : $value,
     );
     if (isset($filter->operator))
-       $result->operator = $filter->operator;
+      $result->operator = $filter->operator;
 
     $options['filters'][$name] = $result;
   }
@@ -310,9 +330,9 @@ class Drupal_Data implements ground_IStorage {
 
   }
 
-  function post_process($entity, $query, $trellis_map) {
+  function post_process($entity, $query) {
     $this->get_links($entity, $query);
-    $this->node_hierarchy($entity, $query);
+    $this->expansions($entity, $query);
 
     $properties = $query->trellis->get_all_properties();
 
@@ -325,7 +345,7 @@ class Drupal_Data implements ground_IStorage {
       $result->nid = $entity->nid;
       foreach ($keys as $key) {
         if (isset($properties->{$key})) {
-          $result->{$key} = $this->process_property($entity, $query, $properties->{$key}, $trellis_map);
+          $result->{$key} = $this->process_property($entity, $query, $properties->{$key});
         } else {
           $result->{$key} = $entity->{$key};
         }
@@ -334,14 +354,15 @@ class Drupal_Data implements ground_IStorage {
       return $result;
     } else {
       foreach ($properties->h as $property) {
-        $entity->{$property->name} = $this->process_property($entity, $query, $property, $trellis_map);
+        $entity->{$property->name} = $this->process_property($entity, $query, $property);
       }
     }
 
     return $entity;
   }
 
-  static function get_property_info($trellis_map, $property) {
+  function get_property_info($property) {
+    $trellis_map = $this->get_trellis_map($property->trellis->name);
     return $trellis_map
     && isset($trellis_map->properties)
     && property_exists($trellis_map->properties, $property->name)
@@ -349,8 +370,8 @@ class Drupal_Data implements ground_IStorage {
       : null;
   }
 
-  function process_property($entity, $query, $property, $trellis_map) {
-    $mapping = Drupal_Data::get_property_info($trellis_map, $property);
+  function process_property($entity, $query, $property) {
+    $mapping = $this->get_property_info($property);
     if ($mapping) {
       if ($mapping->type == 'flag') {
         $flag = flag_get_flag($mapping->source);
@@ -361,22 +382,41 @@ class Drupal_Data implements ground_IStorage {
     return isset($entity->{$property->name}) ? $entity->{$property->name} : null;
   }
 
-  function node_hierarchy($entity, $query) {
-    if (isset($entity->nodehierarchy_menu_links) && count($entity->nodehierarchy_menu_links) > 0) {
-      $tree = $entity->nodehierarchy_menu_links[0];
-      $sql = 'SELECT link_path FROM `menu_links` where plid = :plid';
-      $rows = db_query($sql, array('plid' => $tree['mlid']))->fetchAll();
-      foreach ($rows as $key => $row) {
-        $rows[$key] = (int)preg_replace('/[^\d]+/', '', $row->link_path);
-      }
-      if (isset($query->expansions) && in_array('children', $query->expansions)) {
-        $children = entity_load('node', $rows);
-        $rows = array();
-        foreach ($children as $child) {
-          $rows[] = $child;
+  function expansions($entity, $query) {
+    if (isset($query->expansions) && is_array($query->expansions)) {
+      $properties = $query->trellis->get_all_properties();
+      foreach ($query->expansions as $expansion) {
+        if ($expansion == 'children'
+          && isset($entity->nodehierarchy_menu_links)
+          && count($entity->nodehierarchy_menu_links) > 0
+        ) {
+          $tree = $entity->nodehierarchy_menu_links[0];
+          $sql = 'SELECT link_path FROM `menu_links` where plid = :plid';
+          $rows = db_query($sql, array('plid' => $tree['mlid']))->fetchAll();
+          foreach ($rows as $key => $row) {
+            $rows[$key] = (int)preg_replace('/[^\d]+/', '', $row->link_path);
+          }
+          $children = entity_load('node', $rows);
+          $rows = array();
+          foreach ($children as $child) {
+            $rows[] = $child;
+          }
+          $entity->children = $rows;
+        } else {
+          $property = $properties->h[$expansion];
+          if (!isset($property))
+            throw new Exception("There is no property defined for " . $query->trellis->name . "." . $expansion);
+
+          $info = $this->get_entity_info($property->other_trellis->name);
+          $entity_name = $info['base table'] == 'node'
+            ? 'node'
+            : $this->get_entity_name($property->other_trellis->name);
+          $id = $entity->{$expansion};
+          $result = entity_load($entity_name, array($id));
+          $child = $result[$id];
+          $entity->{$expansion} = $child;
         }
       }
-      $entity->children = $rows;
     }
   }
 
