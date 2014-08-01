@@ -15,9 +15,10 @@ class metahub_code_expressions_Expression_Reference implements metahub_code_expr
 		$chain = $this->reference->chain;
 		$converter = $this->reference->create_converter($scope);
 		if($converter !== null) {
-			$converter->input_port->connect($port);
-			return $converter->output_port;
+			_hx_array_get($converter->ports, 1)->connect($port);
+			$port = $converter->ports[0];
 		}
+		$group->nodes->unshift($port->node);
 		return $port;
 	}
 	public function __call($m, $a) {

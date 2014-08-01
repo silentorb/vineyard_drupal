@@ -311,8 +311,8 @@ class Drupal_Data implements ground_IStorage {
   }
 
   function post_process($entity, $query, $trellis_map) {
-    $this->node_hierarchy($entity, $query);
     $this->get_links($entity, $query);
+    $this->node_hierarchy($entity, $query);
 
     $properties = $query->trellis->get_all_properties();
 
@@ -417,7 +417,7 @@ class Drupal_Data implements ground_IStorage {
         continue;
 
       if ($property->other_property->type == 4) { // 3: Reference
-        $base_name = $property->name;
+        $base_name = $property->other_property->name;
         $field_name = 'field_' . $base_name . '_target_id';
         $sql = <<<SQL
 SELECT entity_id

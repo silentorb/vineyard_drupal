@@ -92,15 +92,18 @@ class metahub_parser_Bootstrap extends metahub_parser_Context {
 	}
 	public function start($data) {
 		$map = _hx_anonymous(array());
+		$items = $data;
 		{
 			$_g = 0;
-			$_g1 = Reflect::fields($data);
-			while($_g < $_g1->length) {
-				$index = $_g1[$_g];
+			while($_g < $items->length) {
+				$item = $items[$_g];
 				++$_g;
-				$item = Reflect::field($data, $index);
-				$map->{$item->name} = $item->value;
-				unset($item,$index);
+				{
+					$field = $item->name;
+					$map->{$field} = $item->value;
+					unset($field);
+				}
+				unset($item);
 			}
 		}
 		return $map;

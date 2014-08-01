@@ -12,11 +12,9 @@ class metahub_code_expressions_Literal implements metahub_code_expressions_Expre
 		return $this->value;
 	}
 	public function to_port($scope, $group) {
-		$trellis = $scope->hub->schema->get_trellis(metahub_code_expressions_Literal::get_type_string($this->type->type), $scope->hub->metahub_namespace, null);
-		$node = $scope->hub->create_node($trellis);
-		$port = $node->get_port(0);
-		$port->set_value($this->value, null);
-		return $port;
+		$node = new metahub_engine_Literal_Node($this->value);
+		$group->nodes->unshift($node);
+		return $node->get_port(0);
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

@@ -20,6 +20,7 @@ class metahub_schema_Schema {
 		return $namespace;
 	}
 	public function add_trellis($name, $trellis) {
+		$trellis->id = $this->trellises->length;
 		$this->trellises->push($trellis);
 		return $trellis;
 	}
@@ -84,16 +85,16 @@ class metahub_schema_Schema {
 			$throw_exception_on_missing = false;
 		}
 		if(_hx_index_of($name, ".", null) > -1) {
-			throw new HException(new HException("Namespace paths are not supported yet.", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 71, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
+			throw new HException(new HException("Namespace paths are not supported yet.", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 72, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
 		}
 		if($namespace === null) {
-			throw new HException(new HException("Could not find namespace for trellis: " . _hx_string_or_null($name) . ".", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 74, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
+			throw new HException(new HException("Could not find namespace for trellis: " . _hx_string_or_null($name) . ".", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 75, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
 		}
 		if(!$namespace->trellises->exists($name)) {
 			if(!$throw_exception_on_missing) {
 				return null;
 			}
-			throw new HException(new HException("Could not find trellis named: " . _hx_string_or_null($name) . ".", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 80, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
+			throw new HException(new HException("Could not find trellis named: " . _hx_string_or_null($name) . ".", null, 400, _hx_anonymous(array("fileName" => "Schema.hx", "lineNumber" => 81, "className" => "metahub.schema.Schema", "methodName" => "get_trellis"))));
 		}
 		return $namespace->trellises->get($name);
 	}

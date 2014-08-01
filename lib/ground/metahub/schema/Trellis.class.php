@@ -1,10 +1,13 @@
 <?php
 
-class metahub_schema_Trellis {
+class metahub_schema_Trellis implements metahub_engine_INode{
 	public function __construct($name, $schema, $namespace) {
 		if(!php_Boot::$skip_constructor) {
-		$this->property_keys = new haxe_ds_StringMap();
+		$this->copy = false;
 		$this->properties = new _hx_array(array());
+		$this->ports = new _hx_array(array());
+		$this->property_keys = new haxe_ds_StringMap();
+		$this->core_properties = new _hx_array(array());
 		$this->name = $name;
 		$this->schema = $schema;
 		$this->{"namespace"} = $namespace;
@@ -15,20 +18,24 @@ class metahub_schema_Trellis {
 	}}
 	public $name;
 	public $schema;
-	public $properties;
+	public $core_properties;
+	public $all_properties;
 	public $parent;
 	public $id;
 	public $identity_property;
 	public $namespace;
 	public $property_keys;
+	public $ports;
+	public $properties;
+	public $copy;
 	public function add_property($name, $source) {
 		$property = new metahub_schema_Property($name, $source, $this);
 		{
 			$this->property_keys->set($name, $property);
 			$property;
 		}
-		$property->id = $this->properties->length;
-		$this->properties->push($property);
+		$property->id = $this->core_properties->length;
+		$this->core_properties->push($property);
 		return $property;
 	}
 	public function copy_identity($source, $target) {
@@ -48,7 +55,7 @@ class metahub_schema_Trellis {
 				++$_g;
 				{
 					$_g1 = 0;
-					$_g2 = $trellis->properties;
+					$_g2 = $trellis->core_properties;
 					while($_g1 < $_g2->length) {
 						$property = $_g2[$_g1];
 						++$_g1;
@@ -67,14 +74,14 @@ class metahub_schema_Trellis {
 	}
 	public function get_identity($seed) {
 		if($this->identity_property === null) {
-			throw new HException(new HException("This trellis does not have an identity property set.", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 58, "className" => "metahub.schema.Trellis", "methodName" => "get_identity"))));
+			throw new HException(new HException("This trellis does not have an identity property set.", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 63, "className" => "metahub.schema.Trellis", "methodName" => "get_identity"))));
 		}
 		return Reflect::field($seed, $this->identity_property->name);
 	}
 	public function get_property($name) {
 		$properties = $this->get_all_properties();
 		if(!$properties->exists($name)) {
-			throw new HException(new HException(_hx_string_or_null($this->name) . " does not contain a property named " . _hx_string_or_null($name) . ".", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 66, "className" => "metahub.schema.Trellis", "methodName" => "get_property"))));
+			throw new HException(new HException(_hx_string_or_null($this->name) . " does not contain a property named " . _hx_string_or_null($name) . ".", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 71, "className" => "metahub.schema.Trellis", "methodName" => "get_property"))));
 		}
 		return $properties->get($name);
 	}
@@ -85,11 +92,30 @@ class metahub_schema_Trellis {
 		}
 		return $properties->get($name);
 	}
-	public function get_value($index) {
-		throw new HException(new HException("Cannot get value of a trellis property.", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 80, "className" => "metahub.schema.Trellis", "methodName" => "get_value"))));
+	public function get_value($index, $context) {
+		return $context->node->get_value($index);
 	}
-	public function set_value($index, $value) {
-		throw new HException(new HException("Cannot set value of a trellis property.", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 84, "className" => "metahub.schema.Trellis", "methodName" => "set_value"))));
+	public function set_value($index, $value, $context, $source = null) {
+		if(!$context->node->trellis->is_a($this)) {
+			throw new HException(new HException("Type mismatch: a " . _hx_string_or_null($context->node->trellis->name) . " node was passed to trellis " . _hx_string_or_null($this->name) . ".", null, null, _hx_anonymous(array("fileName" => "Trellis.hx", "lineNumber" => 90, "className" => "metahub.schema.Trellis", "methodName" => "set_value"))));
+		}
+		$context->node->set_value($index, $value, $source);
+	}
+	public function set_external_value($index, $value, $context, $source) {
+		$port = $this->ports[$index];
+		{
+			$_g = 0;
+			$_g1 = $port->connections;
+			while($_g < $_g1->length) {
+				$connection = $_g1[$_g];
+				++$_g;
+				if($connection === $source) {
+					continue;
+				}
+				$connection->set_node_value($value, $context, $port);
+				unset($connection);
+			}
+		}
 	}
 	public function get_tree() {
 		$trellis = $this;
@@ -140,8 +166,36 @@ class metahub_schema_Trellis {
 				}
 			}
 		}
+		$tree = $this->get_tree();
+		{
+			$_g = 0;
+			while($_g < $tree->length) {
+				$trellis1 = $tree[$_g];
+				++$_g;
+				{
+					$_g1 = 0;
+					$_g2 = $trellis1->core_properties;
+					while($_g1 < $_g2->length) {
+						$property = $_g2[$_g1];
+						++$_g1;
+						$this->properties->push($property);
+						$this->ports->push(new metahub_engine_General_Port($this, $this->ports->length));
+						unset($property);
+					}
+					unset($_g2,$_g1);
+				}
+				unset($trellis1);
+			}
+		}
 	}
 	public function initialize2($source) {
+		if(_hx_has_field($source, "copy")) {
+			$this->copy = $source->copy;
+		} else {
+			if($this->parent !== null) {
+				$this->copy = $this->parent->copy;
+			}
+		}
 		if($source->properties !== null) {
 			$_g = 0;
 			$_g1 = Reflect::fields($source->properties);
@@ -156,6 +210,9 @@ class metahub_schema_Trellis {
 	}
 	public function set_parent($parent) {
 		$this->parent = $parent;
+	}
+	public function get_port($index) {
+		return $this->ports[$index];
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))

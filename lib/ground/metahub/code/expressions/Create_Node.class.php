@@ -18,7 +18,7 @@ class metahub_code_expressions_Create_Node implements metahub_code_expressions_E
 		while($__hx__it->hasNext()) {
 			$i = $__hx__it->next();
 			$expression = $this->assignments->get($i);
-			$node->set_value($i, $expression->resolve($scope));
+			$node->set_value($i, $expression->resolve($scope), null);
 			unset($expression);
 		}
 		return $node->id;

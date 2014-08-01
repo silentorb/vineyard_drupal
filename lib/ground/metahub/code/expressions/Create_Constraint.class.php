@@ -11,6 +11,7 @@ class metahub_code_expressions_Create_Constraint implements metahub_code_express
 	public $expression;
 	public function resolve($scope) {
 		$group = new metahub_code_Group();
+		$scope->hub->constraints->push($group);
 		$other_port = $this->expression->to_port($scope, $group);
 		if((is_object($_t = $this->reference->get_layer()) && !($_t instanceof Enum) ? $_t === metahub_code_Layer::$schema : $_t == metahub_code_Layer::$schema)) {
 			$property_reference = $this->reference;
@@ -18,7 +19,7 @@ class metahub_code_expressions_Create_Constraint implements metahub_code_express
 			$port->connect($other_port);
 			return null;
 		}
-		throw new HException(new HException("Not implemented yet.", null, null, _hx_anonymous(array("fileName" => "Create_Constraint.hx", "lineNumber" => 47, "className" => "metahub.code.expressions.Create_Constraint", "methodName" => "resolve"))));
+		throw new HException(new HException("Not implemented yet.", null, null, _hx_anonymous(array("fileName" => "Create_Constraint.hx", "lineNumber" => 48, "className" => "metahub.code.expressions.Create_Constraint", "methodName" => "resolve"))));
 	}
 	public function to_port($scope, $group) {
 		return null;

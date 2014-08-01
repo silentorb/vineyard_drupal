@@ -4,7 +4,11 @@ class metahub_schema_Property {
 	public function __construct($name, $source, $trellis) {
 		if(!php_Boot::$skip_constructor) {
 		$this->multiple = false;
-		$this->type = Reflect::field(_hx_qtype("metahub.schema._Kind.Kind_Impl_"), $source->type);
+		if($source->type === "list") {
+			$this->type = 4;
+		} else {
+			$this->type = Reflect::field(_hx_qtype("metahub.schema._Kind.Kind_Impl_"), $source->type);
+		}
 		if(_hx_field($source, "default_value") !== null) {
 			$this->default_value = $source->default_value;
 		}
@@ -26,7 +30,6 @@ class metahub_schema_Property {
 	public $other_trellis;
 	public $other_property;
 	public $multiple;
-	public $port;
 	public function fullname() {
 		return _hx_string_or_null($this->trellis->name) . "." . _hx_string_or_null($this->name);
 	}
@@ -66,7 +69,7 @@ class metahub_schema_Property {
 		} else {
 			$other_properties = Lambda::filter($this->other_trellis->properties, array(new _hx_lambda(array(&$_g, &$source), "metahub_schema_Property_0"), 'execute'));
 			if($other_properties->length > 1) {
-				throw new HException(new HException("Multiple ambiguous other properties for " . _hx_string_or_null($this->trellis->name) . "." . _hx_string_or_null($this->name) . ".", null, null, _hx_anonymous(array("fileName" => "Property.hx", "lineNumber" => 88, "className" => "metahub.schema.Property", "methodName" => "initialize_link"))));
+				throw new HException(new HException("Multiple ambiguous other properties for " . _hx_string_or_null($this->trellis->name) . "." . _hx_string_or_null($this->name) . ".", null, null, _hx_anonymous(array("fileName" => "Property.hx", "lineNumber" => 89, "className" => "metahub.schema.Property", "methodName" => "initialize_link"))));
 			} else {
 				if($other_properties->length === 1) {
 					$this->other_property = $other_properties->first();

@@ -45,7 +45,7 @@ class metahub_parser_Definition {
 			switch($_g) {
 			case "reference":{
 				if(!metahub_parser_Definition_0($this, $_g, $source)) {
-					throw new HException(new HException("There is no pattern named: " . Std::string($source->name), null, null, _hx_anonymous(array("fileName" => "Definition.hx", "lineNumber" => 35, "className" => "metahub.parser.Definition", "methodName" => "__create_pattern"))));
+					throw new HException(new HException("There is no pattern named: " . Std::string($source->name), null, null, _hx_anonymous(array("fileName" => "Definition.hx", "lineNumber" => 41, "className" => "metahub.parser.Definition", "methodName" => "__create_pattern"))));
 				}
 				if(_hx_has_field($source, "action")) {
 					return new metahub_parser_Wrapper(metahub_parser_Definition_1($this, $_g, $source), $source->action);
@@ -68,8 +68,8 @@ class metahub_parser_Definition {
 			}break;
 			}
 		}
-		haxe_Log::trace($source, _hx_anonymous(array("fileName" => "Definition.hx", "lineNumber" => 55, "className" => "metahub.parser.Definition", "methodName" => "__create_pattern")));
-		throw new HException(new HException("Invalid parser pattern type: " . Std::string($source->type) . ".", null, null, _hx_anonymous(array("fileName" => "Definition.hx", "lineNumber" => 56, "className" => "metahub.parser.Definition", "methodName" => "__create_pattern"))));
+		haxe_Log::trace($source, _hx_anonymous(array("fileName" => "Definition.hx", "lineNumber" => 61, "className" => "metahub.parser.Definition", "methodName" => "__create_pattern")));
+		throw new HException(new HException("Invalid parser pattern type: " . Std::string($source->type) . ".", null, null, _hx_anonymous(array("fileName" => "Definition.hx", "lineNumber" => 62, "className" => "metahub.parser.Definition", "methodName" => "__create_pattern"))));
 	}
 	public function create_pattern($source, $root = null) {
 		if($root === null) {
@@ -97,7 +97,7 @@ class metahub_parser_Definition {
 		}
 		if($root && _hx_equal($source->type, "reference")) {
 			if(!metahub_parser_Definition_2($this, $pattern, $root, $source)) {
-				throw new HException(new HException("There is no pattern named: " . Std::string($source->name), null, null, _hx_anonymous(array("fileName" => "Definition.hx", "lineNumber" => 76, "className" => "metahub.parser.Definition", "methodName" => "initialize_pattern"))));
+				throw new HException(new HException("There is no pattern named: " . Std::string($source->name), null, null, _hx_anonymous(array("fileName" => "Definition.hx", "lineNumber" => 82, "className" => "metahub.parser.Definition", "methodName" => "initialize_pattern"))));
 			}
 			$wrapper = $pattern;
 			{
@@ -110,24 +110,24 @@ class metahub_parser_Definition {
 			return;
 		}
 		if(_hx_equal($source->type, "and") || _hx_equal($source->type, "or")) {
+			$group_source = $source;
 			$group = $pattern;
-			if(_hx_has_field($source, "action")) {
-				$group->action = $source->action;
+			if(_hx_has_field($group_source, "action")) {
+				$group->action = $group_source->action;
 			}
 			{
 				$_g = 0;
-				$_g1 = Reflect::fields($source->patterns);
+				$_g1 = $group_source->patterns;
 				while($_g < $_g1->length) {
-					$key2 = $_g1[$_g];
+					$child = $_g1[$_g];
 					++$_g;
-					$child = Reflect::field($source->patterns, $key2);
 					$child_pattern = $this->create_pattern($child, null);
 					if($child_pattern === null) {
-						throw new HException(new HException("Null child pattern!", null, null, _hx_anonymous(array("fileName" => "Definition.hx", "lineNumber" => 96, "className" => "metahub.parser.Definition", "methodName" => "initialize_pattern"))));
+						throw new HException(new HException("Null child pattern!", null, null, _hx_anonymous(array("fileName" => "Definition.hx", "lineNumber" => 102, "className" => "metahub.parser.Definition", "methodName" => "initialize_pattern"))));
 					}
 					$this->initialize_pattern($child, $child_pattern, null);
 					$group->patterns->push($child_pattern);
-					unset($key2,$child_pattern,$child);
+					unset($child_pattern,$child);
 				}
 			}
 		} else {

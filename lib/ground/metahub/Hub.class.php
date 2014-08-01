@@ -3,6 +3,10 @@
 class metahub_Hub {
 	public function __construct() {
 		if(!php_Boot::$skip_constructor) {
+		$this->max_steps = 100;
+		$this->entry_node = null;
+		$this->queue = new _hx_array(array());
+		$this->constraints = new _hx_array(array());
 		$this->history = new metahub_History();
 		$this->node_factories = new _hx_array(array());
 		$this->internal_nodes = new _hx_array(array());
@@ -26,13 +30,52 @@ class metahub_Hub {
 	public $node_factories;
 	public $function_library;
 	public $history;
+	public $constraints;
+	public $queue;
+	public $entry_node;
+	public $max_steps;
+	public function add_change($node, $index, $value, $context, $source = null) {
+		$i = $this->queue->length;
+		while(--$i >= 0) {
+			if(_hx_array_get($this->queue, $i)->node === $node) {
+				$this->queue->splice($i, 1);
+			}
+		}
+		$change = new metahub_engine_Change($node, $index, $value, $context, $source);
+		$this->queue->push($change);
+	}
+	public function set_entry_node($node) {
+		if($this->entry_node === null) {
+			$this->entry_node = $node;
+		}
+	}
+	public function run_change_queue($node) {
+		if($this->entry_node !== $node) {
+			return;
+		}
+		$steps = 0;
+		while($this->queue->length > 0) {
+			$change = $this->queue->shift();
+			$change->run();
+			if(++$steps > $this->max_steps) {
+				throw new HException(new HException("Max steps of " . _hx_string_rec($this->max_steps, "") . " was reached.", null, null, _hx_anonymous(array("fileName" => "Hub.hx", "lineNumber" => 87, "className" => "metahub.Hub", "methodName" => "run_change_queue"))));
+			}
+			unset($change);
+		}
+		$this->entry_node = null;
+	}
 	public function load_parser() {
 		$boot_definition = new metahub_parser_Definition();
 		$boot_definition->load_parser_schema();
 		$context = new metahub_parser_Bootstrap($boot_definition);
 		$result = $context->parse("start = trim @(statement, newlines, 0, 0) final_trim\x0D\x0A\x0D\x0Anone = /&*/\x0D\x0Aws = /\\s+/\x0D\x0Atrim = /\\s*/\x0D\x0Afinal_trim = /\\s*/\x0D\x0Anewlines = /(\\s*\\n)+\\s*/\x0D\x0Acomma_or_newline = /\\s*((\\s*\\n)+|,)\\s*/\x0D\x0Adot = \".\"\x0D\x0A\x0D\x0Aid = /[a-zA-Z0-9_]+/\x0D\x0A\x0D\x0Apath = @(id, dot, 2, 0)\x0D\x0A\x0D\x0Apath_or_id = @(id, dot, 1, 0)\x0D\x0A\x0D\x0Areference = path_or_id @(method, none, 0, 0)\x0D\x0A\x0D\x0Amethod = \"|\" id\x0D\x0A\x0D\x0Astatement =\x0D\x0A    create_symbol\x0D\x0A  | set_values\x0D\x0A  | trellis_scope\x0D\x0A  | create_constraint\x0D\x0A\x09| create_node\x0D\x0A\x0D\x0Acreate_symbol = \"let\" ws id trim \"=\" trim expression\x0D\x0A\x0D\x0Acreate_constraint = path trim \"=\" trim expression\x0D\x0A\x0D\x0Aexpression =\x0D\x0A    @(expression_part, operation_separator, 1, 0)\x0D\x0A\x0D\x0Aoperation_separator = trim operator trim\x0D\x0A\x0D\x0Aexpression_part =\x0D\x0A    value\x0D\x0A  | create_node\x0D\x0A  | reference\x0D\x0A\x0D\x0Astring = ('\"' /[^\"]*/ '\"') | (\"'\" /[^']*/ \"'\")\x0D\x0Abool = \"true\" | \"false\"\x0D\x0Aint = /-?[0-9]+/\x0D\x0Afloat = /-?([0-9]*\\.)?[0-9]+f?/\x0D\x0Aoperator = '+' | '-' | '/' | '*' | '%'\x0D\x0Aconstraint_operator = '=' | '<' | '>' | '<=' | '>='\x0D\x0A\x0D\x0Avalue = string | bool | int | float\x0D\x0A\x0D\x0Adummy = \"@&^%\"\x0D\x0A\x0D\x0Acreate_node = \"new\" ws path_or_id trim @(set_property_block, dummy, 0, 1)\x0D\x0A\x0D\x0Aset_property_block = \"{\" trim @(set_property, comma_or_newline, 1, 0) trim \"}\"\x0D\x0A\x0D\x0Aset_property = id trim \":\" trim expression\x0D\x0A\x0D\x0Aset_values = \"set\" ws path_or_id trim set_property_block\x0D\x0A\x0D\x0Atrellis_scope = path_or_id trim constraint_block\x0D\x0A\x0D\x0Aconstraint_block = \"(\" trim @(constraint, comma_or_newline, 1, 0) trim \")\"\x0D\x0A\x0D\x0Aconstraint = id trim constraint_operator trim expression", false);
-		$this->parser_definition = new metahub_parser_Definition();
-		$this->parser_definition->load($result->get_data());
+		if($result->success) {
+			$match = $result;
+			$this->parser_definition = new metahub_parser_Definition();
+			$this->parser_definition->load($match->get_data());
+		} else {
+			throw new HException(new HException("Error loading parser.", null, null, _hx_anonymous(array("fileName" => "Hub.hx", "lineNumber" => 104, "className" => "metahub.Hub", "methodName" => "load_parser"))));
+		}
 	}
 	public function create_node($trellis) {
 		$node = null;
@@ -50,7 +93,7 @@ class metahub_Hub {
 			}
 		}
 		if($node === null) {
-			throw new HException(new HException("Could not find valid factory to create node of type " . _hx_string_or_null($trellis->name) . ".", null, null, _hx_anonymous(array("fileName" => "Hub.hx", "lineNumber" => 68, "className" => "metahub.Hub", "methodName" => "create_node"))));
+			throw new HException(new HException("Could not find valid factory to create node of type " . _hx_string_or_null($trellis->name) . ".", null, null, _hx_anonymous(array("fileName" => "Hub.hx", "lineNumber" => 117, "className" => "metahub.Hub", "methodName" => "create_node"))));
 		}
 		$this->add_node($node);
 		return $node;
@@ -62,8 +105,8 @@ class metahub_Hub {
 		$this->internal_nodes->push($node);
 	}
 	public function get_node($id) {
-		if($id < 0 || $id >= $this->nodes->length) {
-			throw new HException(new HException("There is no node with an id of " . _hx_string_rec($id, "") . ".", null, null, _hx_anonymous(array("fileName" => "Hub.hx", "lineNumber" => 84, "className" => "metahub.Hub", "methodName" => "get_node"))));
+		if($id < 1 || $id >= $this->nodes->length) {
+			throw new HException(new HException("There is no node with an id of " . _hx_string_rec($id, "") . ".", null, null, _hx_anonymous(array("fileName" => "Hub.hx", "lineNumber" => 133, "className" => "metahub.Hub", "methodName" => "get_node"))));
 		}
 		return $this->nodes[$id];
 	}
@@ -97,7 +140,7 @@ class metahub_Hub {
 	public function run_code($code) {
 		$result = $this->parse_code($code);
 		if(!$result->success) {
-			throw new HException(new HException("Error parsing code.", null, null, _hx_anonymous(array("fileName" => "Hub.hx", "lineNumber" => 115, "className" => "metahub.Hub", "methodName" => "run_code"))));
+			throw new HException(new HException("Error parsing code.", null, null, _hx_anonymous(array("fileName" => "Hub.hx", "lineNumber" => 164, "className" => "metahub.Hub", "methodName" => "run_code"))));
 		}
 		$match = $result;
 		$expression = $this->run_data($match->get_data());
@@ -112,7 +155,7 @@ class metahub_Hub {
 		return $context->parse($without_comments, null);
 	}
 	public function load_internal_trellises() {
-		$functions = "{\x0D\x0A  \"trellises\": {\x0D\x0A    \"string\": {\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"string\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    },\x0D\x0A    \"int\": {\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"int\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A\x09\x09},\x0D\x0A\x09\x09\"float\": {\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"float\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    },\x0D\x0A    \"function\": {},\x0D\x0A\x09\x09\"int_operation\": {\x0D\x0A      \"parent\": \"function\",\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        },\x0D\x0A        \"input\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    },\x0D\x0A\x09\x09\"int_single\": {\x0D\x0A      \"parent\": \"function\",\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        },\x0D\x0A        \"input\": {\x0D\x0A          \"type\": \"int\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    },\x0D\x0A    \"Add_Int\": {\x0D\x0A      \"parent\": \"int_operation\"\x0D\x0A    },\x0D\x0A    \"subtract\": {\x0D\x0A      \"parent\": \"function\",\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        },\x0D\x0A        \"input\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    },\x0D\x0A    \"Count\": {\x0D\x0A      \"parent\": \"function\",\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"any\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        },\x0D\x0A        \"input\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    },\x0D\x0A\x09\x09\"Greater_Than_Int\": {\x0D\x0A      \"parent\": \"int_single\"\x0D\x0A    },\x0D\x0A\x09\x09\"Lesser_Than_Int\": {\x0D\x0A      \"parent\": \"int_single\"\x0D\x0A    },\x0D\x0A\x09\x09\"Subtract_Int\": {\x0D\x0A      \"parent\": \"int_single\"\x0D\x0A    }\x0D\x0A  }\x0D\x0A}";
+		$functions = "{\x0D\x0A  \"trellises\": {\x0D\x0A    \"string\": {\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"string\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    },\x0D\x0A    \"int\": {\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"int\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A\x09\x09},\x0D\x0A\x09\x09\"float\": {\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"float\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    },\x0D\x0A    \"function\": {},\x0D\x0A\x09\x09\"int1\": {\x0D\x0A      \"parent\": \"function\",\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        },\x0D\x0A        \"first\": {\x0D\x0A          \"type\": \"int\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    },\x0D\x0A\x09\x09\"int2\": {\x0D\x0A      \"parent\": \"function\",\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        },\x0D\x0A        \"first\": {\x0D\x0A          \"type\": \"int\"\x0D\x0A        },\x0D\x0A        \"second\": {\x0D\x0A          \"type\": \"int\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    },\x0D\x0A    \"Add_Int\": {\x0D\x0A      \"parent\": \"int2\"\x0D\x0A    },\x0D\x0A\x09\x09\"Subtract_Int\": {\x0D\x0A      \"parent\": \"int2\"\x0D\x0A    },\x0D\x0A\x09\x09\"Greater_Than_Int\": {\x0D\x0A      \"parent\": \"int1\"\x0D\x0A    },\x0D\x0A\x09\x09\"Lesser_Than_Int\": {\x0D\x0A      \"parent\": \"int1\"\x0D\x0A    },\x0D\x0A\x09\x09\"Count\": {\x0D\x0A      \"parent\": \"function\",\x0D\x0A      \"properties\": {\x0D\x0A        \"output\": {\x0D\x0A          \"type\": \"any\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        },\x0D\x0A        \"input\": {\x0D\x0A          \"type\": \"int\",\x0D\x0A          \"multiple\": \"true\"\x0D\x0A        }\x0D\x0A      }\x0D\x0A    }\x0D\x0A  }\x0D\x0A}";
 		$data = haxe_Json::phpJsonDecode($functions);
 		$this->schema->load_trellises($data->trellises, new metahub_schema_Load_Settings($this->metahub_namespace, null));
 	}

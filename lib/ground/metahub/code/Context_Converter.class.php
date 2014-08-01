@@ -1,25 +1,44 @@
 <?php
 
-class metahub_code_Context_Converter {
-	public function __construct($input_property, $output_property, $kind) {
+class metahub_code_Context_Converter implements metahub_engine_INode{
+	public function __construct($output_property, $input_property) {
 		if(!php_Boot::$skip_constructor) {
-		$_g = $this;
-		$this->input_property = $input_property;
-		$this->output_property = $output_property;
-		$this->input_port = new metahub_engine_Signal_Port($kind, array(new _hx_lambda(array(&$_g, &$input_property, &$kind, &$output_property), "metahub_code_Context_Converter_0"), 'execute'), null);
-		$this->output_port = new metahub_engine_Signal_Port($kind, array(new _hx_lambda(array(&$_g, &$input_property, &$kind, &$output_property), "metahub_code_Context_Converter_1"), 'execute'), null);
-		$this->input_port->on_change->push(array(new _hx_lambda(array(&$_g, &$input_property, &$kind, &$output_property), "metahub_code_Context_Converter_2"), 'execute'));
-		$this->output_port->on_change->push(array(new _hx_lambda(array(&$_g, &$input_property, &$kind, &$output_property), "metahub_code_Context_Converter_3"), 'execute'));
+		$this->properties = new _hx_array(array());
+		$this->ports = new _hx_array(array());
+		$this->properties->push($output_property);
+		$this->properties->push($input_property);
+		$this->ports->push(new metahub_engine_General_Port($this, 0));
+		$this->ports->push(new metahub_engine_General_Port($this, 1));
 	}}
-	public $input_property;
-	public $input_port;
-	public $output_property;
-	public $output_port;
+	public $ports;
+	public $properties;
 	public function create_context($context, $node_id) {
 		$node = $context->hub->get_node($node_id);
 		return new metahub_engine_Context($node, $context->hub);
 	}
-	public function process($port, $value, $property, $context) {
+	public function get_port($index) {
+		return $this->ports[$index];
+	}
+	public function get_value($index, $context) {
+		$_g = $this;
+		$port = $this->ports[1 - $index];
+		$property = $this->properties[$index];
+		if((is_object($_t = $property->type) && !($_t instanceof Enum) ? $_t === 4 : $_t == 4)) {
+			$list = $context->node->get_value($property->id);
+			return Lambda::harray(Lambda::map($list, array(new _hx_lambda(array(&$_g, &$_t, &$context, &$index, &$list, &$port, &$property), "metahub_code_Context_Converter_0"), 'execute')));
+		} else {
+			haxe_Log::trace("get - Converting " . _hx_string_or_null($property->fullname()) . " to " . _hx_string_or_null($property->other_property->fullname()), _hx_anonymous(array("fileName" => "Context_Converter.hx", "lineNumber" => 52, "className" => "metahub.code.Context_Converter", "methodName" => "get_value")));
+			$node_id1 = $context->node->get_value($property->id);
+			if($node_id1 === 0) {
+				throw new HException(new HException("Context_Converter cannot get value for null reference.", null, null, _hx_anonymous(array("fileName" => "Context_Converter.hx", "lineNumber" => 55, "className" => "metahub.code.Context_Converter", "methodName" => "get_value"))));
+			}
+			return $port->get_external_value($this->create_context($context, $node_id1));
+		}
+	}
+	public function set_value($index, $value, $context, $source = null) {
+		$port = $this->ports[1 - $index];
+		$property = $this->properties[$index];
+		haxe_Log::trace("set - Converting " . _hx_string_or_null($property->fullname()) . " to " . _hx_string_or_null($property->other_property->fullname()), _hx_anonymous(array("fileName" => "Context_Converter.hx", "lineNumber" => 65, "className" => "metahub.code.Context_Converter", "methodName" => "set_value")));
 		if((is_object($_t = $property->type) && !($_t instanceof Enum) ? $_t === 4 : $_t == 4)) {
 			$ids = $context->node->get_value($property->id);
 			{
@@ -27,13 +46,17 @@ class metahub_code_Context_Converter {
 				while($_g < $ids->length) {
 					$i = $ids[$_g];
 					++$_g;
-					$port->output($value, $this->create_context($context, $i));
+					if($i > 0) {
+						$port->set_external_value($value, $this->create_context($context, $i));
+					}
 					unset($i);
 				}
 			}
 		} else {
 			$node_id = $context->node->get_value($property->id);
-			$port->output($value, $this->create_context($context, $node_id));
+			if($node_id > 0) {
+				$port->set_external_value($value, $this->create_context($context, $node_id));
+			}
 		}
 	}
 	public function __call($m, $a) {
@@ -48,23 +71,11 @@ class metahub_code_Context_Converter {
 	}
 	function __toString() { return 'metahub.code.Context_Converter'; }
 }
-function metahub_code_Context_Converter_0(&$_g, &$input_property, &$kind, &$output_property, $context) {
+function metahub_code_Context_Converter_0(&$_g, &$_t, &$context, &$index, &$list, &$port, &$property, $node_id) {
 	{
-		return $_g->output_port->get_external_value($context);
-	}
-}
-function metahub_code_Context_Converter_1(&$_g, &$input_property, &$kind, &$output_property, $context1) {
-	{
-		return $_g->input_port->get_external_value($context1);
-	}
-}
-function metahub_code_Context_Converter_2(&$_g, &$input_property, &$kind, &$output_property, $input, $value, $context2) {
-	{
-		$_g->process($_g->output_port, $value, $input_property, $context2);
-	}
-}
-function metahub_code_Context_Converter_3(&$_g, &$input_property, &$kind, &$output_property, $input1, $value1, $context3) {
-	{
-		$_g->process($_g->input_port, $value1, $output_property, $context3);
+		if($node_id === 0) {
+			throw new HException(new HException("Context_Converter cannot get value for null reference.", null, null, _hx_anonymous(array("fileName" => "Context_Converter.hx", "lineNumber" => 46, "className" => "metahub.code.Context_Converter", "methodName" => "get_value"))));
+		}
+		return $port->get_external_value($_g->create_context($context, $node_id));
 	}
 }

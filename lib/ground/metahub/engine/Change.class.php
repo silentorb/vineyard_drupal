@@ -1,21 +1,21 @@
 <?php
 
-class metahub_engine_Port {
-	public function __construct($node, $id) {
+class metahub_engine_Change {
+	public function __construct($node, $index, $value, $context, $source = null) {
 		if(!php_Boot::$skip_constructor) {
-		$this->connections = new _hx_array(array());
 		$this->node = $node;
-		$this->id = $id;
+		$this->index = $index;
+		$this->value = $value;
+		$this->context = $context;
+		$this->source = $source;
 	}}
-	public $connections;
 	public $node;
-	public $id;
-	public function connect($port) {
-		if($this->connections->indexOf($port, null) > -1) {
-			return;
-		}
-		$this->connections->push($port);
-		$port->connections->push($this);
+	public $index;
+	public $value;
+	public $context;
+	public $source;
+	public function run() {
+		$this->node->set_value($this->index, $this->value, $this->context, $this->source);
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
@@ -27,5 +27,5 @@ class metahub_engine_Port {
 		else
 			throw new HException('Unable to call <'.$m.'>');
 	}
-	function __toString() { return 'metahub.engine.Port'; }
+	function __toString() { return 'metahub.engine.Change'; }
 }

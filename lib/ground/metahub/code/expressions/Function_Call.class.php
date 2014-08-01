@@ -38,6 +38,7 @@ class metahub_code_expressions_Function_Call implements metahub_code_expressions
 			}
 		}
 		$output = $node->get_port(0);
+		$group->nodes->unshift($node);
 		return $output;
 	}
 	public function __call($m, $a) {

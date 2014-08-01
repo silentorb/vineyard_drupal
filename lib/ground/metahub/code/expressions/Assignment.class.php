@@ -9,7 +9,7 @@ class metahub_code_expressions_Assignment {
 	public $index;
 	public $expression;
 	public function apply($node, $scope) {
-		$node->set_value($this->index, $this->expression->resolve($scope));
+		$node->set_value($this->index, $this->expression->resolve($scope), null);
 	}
 	public function __call($m, $a) {
 		if(isset($this->$m) && is_callable($this->$m))
