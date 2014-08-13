@@ -16,7 +16,8 @@ class Drupal_Data implements ground_IStorage {
     $info = null;
     if (array_key_exists($entity_name, $entity_info)) {
       return $entity_info[$entity_name];
-    } else {
+    }
+    else {
       return $entity_info['node'];
     }
   }
@@ -34,6 +35,15 @@ class Drupal_Data implements ground_IStorage {
   }
 
   function run_query($query, $response) {
+    if (isset($this->additional)) {
+      if (isset($this->additional->view)) {
+        $query->view = $this->additional->view;
+        if (isset($this->additional->args)) {
+          $query->args = $this->additional->args;
+        }
+      }
+    }
+
     $entity_name = $this->get_entity_name($query->trellis->name);
     $response->objects = array();
     $entity_type = 'node';
@@ -42,7 +52,8 @@ class Drupal_Data implements ground_IStorage {
     if (array_key_exists($entity_name, $entity_info)) {
       $entity_type = $entity_name;
       $info = $entity_info[$entity_name];
-    } else {
+    }
+    else {
       $info = $entity_info['node'];
     }
 
@@ -86,7 +97,8 @@ class Drupal_Data implements ground_IStorage {
           $this->add_flag_filter($name, $filter->value, $options, $info);
           continue;
         }
-      } else {
+      }
+      else {
         if ($field_info['module'] == 'taxonomy') {
           $this->taxonomy($name, $filter, $options);
         }
@@ -108,10 +120,12 @@ class Drupal_Data implements ground_IStorage {
       'table' => $info['base table'],
       'field' => $name,
       'value' => is_int($value) ? (string)$value : $value,
+      'group_type' => 'group',
+      'group' => '1',
     );
     if (isset($filter->operator)) {
-      if ($filter->operator == 'like')
-         $filter->operator = 'contain';
+      if ($filter->operator == 'like' || $filter->operator == 'LIKE')
+        $filter->operator = 'contains';
 
       $result['operator'] = $filter->operator;
     }
@@ -131,7 +145,7 @@ class Drupal_Data implements ground_IStorage {
       'value' => $value,
       'group' => '1',
       'exposed' => false,
-      'is_grouped' => false,
+      'is_grouped' => true,
     );
 
     $options['relationships'][$relationship_name] = array(
@@ -148,6 +162,16 @@ class Drupal_Data implements ground_IStorage {
   function proximity($path, $filter) {
     $value = (object)$filter->value;
 
+    $filter_value = array(
+      'unit' => '3959',
+      'origin' => array(
+        'lat' => $value->lat,
+        'lon' => $value->lon,
+      ));
+
+    if (isset($value->max))
+      $filter_value['distance'] = $value->max;
+
     return array(
       'id' => 'field_geofield_distance',
       'table' => 'field_data_field_location',
@@ -156,14 +180,7 @@ class Drupal_Data implements ground_IStorage {
       'group_type' => 'group',
       'ui_name' => '',
       'operator' => '<=',
-      'value' => array(
-        'distance' => $value->max,
-        'unit' => '3959',
-        'origin' => array(
-          'lat' => $value->lat,
-          'lon' => $value->lon,
-        ),
-      ),
+      'value' => $filter_value,
       'group' => '1',
       'is_grouped' => false,
       'group_info' => array(
@@ -199,42 +216,47 @@ class Drupal_Data implements ground_IStorage {
       print var_export($view->display['default']->display_options);
       exit(0);
     }
-    // Create view
-    $view = views_new_view();
-    $view->core = 7;
 
-    $view->base_table = $info['base table'];
-    $view->base_field = $info['entity keys']['id'];
+    $view = null;
 
-    $options = array(
-      'query' => array(
-        'type' => 'views_query',
-        'options' => array(),
-      ),
-      'filters' => array()
-    );
+    if (isset($query->view)) {
+      $view = views_get_view($query->view);
+      if (isset($query->args)) {
+        $view->set_arguments($query->args);
+      }
+    }
+    else {
+      // Create view
+      $view = views_new_view();
+      $view->core = 7;
 
-    $options['fields'][$view->base_field] = array(
-      'table' => $view->base_table,
-      'field' => $view->base_field,
-      'id' => $view->base_field,
-    );
+      $view->base_table = $info['base table'];
+      $view->base_field = $info['entity keys']['id'];
 
-    $this->filter_by_view($query, $options, $info, $entity_name);
-    if (isset($query)) {
-      $this->add_range($query, $options);
+      $options = array(
+        'query' => array(
+          'type' => 'views_query',
+          'options' => array(),
+        ),
+        'filters' => array()
+      );
+
+      $options['fields'][$view->base_field] = array(
+        'table' => $view->base_table,
+        'field' => $view->base_field,
+        'id' => $view->base_field,
+      );
+
+      $this->filter_by_view($query, $options, $info, $entity_name);
+      if (isset($query)) {
+        $this->add_range($query, $options);
+      }
+
+      $this->sort($query, $options, $info);
+
+      $view->display['default']->display_options = $options;
     }
 
-    $this->sort($query, $options, $info);
-
-    $view->display['default']->display_options = $options;
-//    if (isset($_GET['view'])) {
-//      $view2 = views_get_view($_GET['view']);
-//      print var_export($view->display['default']->display_options);
-//      print('cow');
-//      print var_export($view2->display['default']->display_options);
-//      exit(0);
-//    }
     $view->set_display('default');
 
     $view->pre_execute();
@@ -242,7 +264,7 @@ class Drupal_Data implements ground_IStorage {
     $result = array();
     if (user_access('debug vineyard')) {
       $response->sql = (string)$view->build_info['query'];
-      if (isset($_GET['view']) && $_GET['view'] == 'true')
+      if (isset($_GET['print-view']) && $_GET['print-view'] == 'true')
         $response->view = $options;
     }
 
@@ -272,13 +294,15 @@ class Drupal_Data implements ground_IStorage {
       foreach ($keys as $key) {
         if (isset($properties->{$key})) {
           $result->{$key} = $this->process_property($entity, $query, $properties->{$key});
-        } else {
+        }
+        else {
           $result->{$key} = $entity->{$key};
         }
       }
 
       return $result;
-    } else {
+    }
+    else {
       foreach ($properties->h as $property) {
         $entity->{$property->name} = $this->process_property($entity, $query, $property);
       }
@@ -328,7 +352,8 @@ class Drupal_Data implements ground_IStorage {
             $rows[] = $child;
           }
           $entity->children = $rows;
-        } else {
+        }
+        else {
           $property = $properties->h[$expansion];
           if (!isset($property))
             throw new Exception("There is no property defined for " . $query->trellis->name . "." . $expansion);
@@ -364,12 +389,18 @@ class Drupal_Data implements ground_IStorage {
 
     foreach ($query->sorts as $sort) {
       $dir = isset($sort->dir) ? $sort->dir : 'DESC';
-      $options['sorts'][$sort->path] = array(
-        'id' => $sort->path,
-        'table' => $info['base table'],
-        'field' => $sort->path,
-        'order' => $dir,
-      );
+      if (isset($sort->operator) && $sort->operator == 'distance') {
+        $options['sorts'][$sort->path] = $this->proximity($sort->path, $sort);
+        continue;
+      }
+      else {
+        $options['sorts'][$sort->path] = array(
+          'id' => $sort->path,
+          'table' => $info['base table'],
+          'field' => $sort->path,
+          'order' => $dir,
+        );
+      }
     }
   }
 

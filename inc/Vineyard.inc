@@ -43,6 +43,18 @@ class Vineyard {
     if (!isset($source->properties))
       $source->properties = null;
 
+    $this->operator->additional = new stdClass();
+    if (isset($source->view)) {
+      $this->operator->additional->view = $source->view;
+    }
+
+    if (isset($source->view)) {
+      $this->operator->additional->view = $source->view;
+      if (isset($source->args)) {
+        $this->operator->additional->args = $source->args;
+      }
+    }
+
     $this->ground->run_query($source, $result, $this->namespace);
   }
 
