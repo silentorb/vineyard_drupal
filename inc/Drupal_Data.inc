@@ -9,59 +9,6 @@ class Drupal_Data implements ground_IStorage {
     $this->vineyard = $vineyard;
   }
 
-  /*
-    private function process_filters($query, $entity_query, $trellis_map) {
-      if (!isset($query->filters) || !is_array($query->filters))
-        return;
-  
-      $properties = $query->trellis->get_all_properties();
-  
-      foreach ($query->filters as $filter) {
-        $path = explode('.', $filter->path);
-  
-        $mapping = count($path) == 1 && isset($properties->h{$path[0]})
-          ? Drupal_Data::get_property_info($trellis_map, $properties->h->{$path[0]})
-          : null;
-  
-  //      if ($mapping && $mapping->type == 'flag') {
-  //        $entity_query->entityCondition('entity_type', 'flagging')
-  //          ->entityCondition('bundle', $mapping->source);
-  //      }
-  
-        $info = field_info_field($path[0]);
-  
-        if ($info) {
-          if ($info['module'] == 'taxonomy') {
-            if (isset($path[1]) && $path[1] == 'name') {
-              $value = taxonomy_get_term_by_name($filter->value);
-              if (count($value) == 0)
-                throw new Exception("Could not find tag $filter->value.");
-  
-              $entity_query->fieldCondition($path[0], 'tid', $value[1]->tid);
-            } else {
-              $entity_query->fieldCondition($path[0], 'tid', $filter->value);
-            }
-          } else {
-            $entity_query->fieldCondition($path[0], 'value', $filter->value);
-          }
-        } else {
-          $entity_query->propertyCondition($path[0], $filter->value);
-        }
-  
-      }
-    }
-  
-    private function process_sorts($query, $entity_query) {
-      if (!isset($query->sorts) || !is_array($query->sorts))
-        return;
-  
-      foreach ($query->sorts as $sort) {
-        $dir = isset($sort->dir) ? $sort->dir : 'DESC';
-        $entity_query->propertyOrderBy($sort->path, $dir);
-      }
-    }
-  */
-
   function get_entity_info($trellis_name) {
     $entity_name = $this->get_entity_name($trellis_name);
 
@@ -110,33 +57,6 @@ class Drupal_Data implements ground_IStorage {
     }
   }
 
-  /*
-    function get_nids_using_entity_query($query, $entity_type, $trellis_map) {
-      $entity_query = new EntityFieldQuery();
-      $entity_query
-        ->entityCondition('entity_type', $entity_type);
-  
-      if ($entity_type == 'node') {
-        $entity_query->propertyCondition('status', 1)
-          ->entityCondition('bundle', $query->trellis->name);
-      }
-  
-      $this->process_filters($query, $entity_query, $trellis_map);
-      $this->process_sorts($query, $entity_query);
-  
-      if (isset($query->range)) {
-        $start = isset($query->range->start) ? $query->range->start : 0;
-        $length = isset($query->range->length) ? $query->range->length : 0;
-        $entity_query->range($start, $length);
-      }
-  
-      $result = $entity_query->execute();
-  
-      return isset($result[$entity_type])
-        ? array_keys($result[$entity_type])
-        : array();
-    }
-  */
   function filter_by_view($query, &$options, $info, $entity_name) {
     if ($info['base table'] == 'node') {
       $filter = new stdClass();
@@ -163,7 +83,7 @@ class Drupal_Data implements ground_IStorage {
       if (!$field_info) {
         $flag = flag_get_flag($name);
         if ($flag) {
-          $this->add_flag_filter($name, $filter->value, $options);
+          $this->add_flag_filter($name, $filter->value, $options, $info);
           continue;
         }
       } else {
@@ -187,16 +107,19 @@ class Drupal_Data implements ground_IStorage {
       'id' => $name,
       'table' => $info['base table'],
       'field' => $name,
-//      'operator' => $filter->operator,
       'value' => is_int($value) ? (string)$value : $value,
     );
-    if (isset($filter->operator))
-      $result->operator = $filter->operator;
+    if (isset($filter->operator)) {
+      if ($filter->operator == 'like')
+         $filter->operator = 'contain';
+
+      $result['operator'] = $filter->operator;
+    }
 
     $options['filters'][$name] = $result;
   }
 
-  function add_flag_filter($name, $value, &$options) {
+  function add_flag_filter($name, $value, &$options, $info) {
     $relationship_name = 'flag_relationship_' . $name;
     $options['filters']['flagged'] = array(
       'id' => 'flagged',
@@ -213,7 +136,7 @@ class Drupal_Data implements ground_IStorage {
 
     $options['relationships'][$relationship_name] = array(
       'id' => 'flag_content_rel',
-      'table' => 'node',
+      'table' => $info['base table'],
       'field' => 'flag_content_rel',
       'relationship' => 'none',
       'group_type' => 'group',
@@ -317,8 +240,11 @@ class Drupal_Data implements ground_IStorage {
     $view->pre_execute();
     $view->execute();
     $result = array();
-    if (user_access('debug vineyard'))
+    if (user_access('debug vineyard')) {
       $response->sql = (string)$view->build_info['query'];
+      if (isset($_GET['view']) && $_GET['view'] == 'true')
+        $response->view = $options;
+    }
 
     foreach ($view->result as $entity) {
       $result[] = $query->trellis->get_identity($entity);
