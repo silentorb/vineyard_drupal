@@ -59,6 +59,10 @@ class Drupal_Data implements ground_IStorage {
 
 //    $nids = get_nids_using_entity_query($query, $entity_type, $trellis_map);
     $nids = $this->get_nids_using_view($query, $entity_name, $response, $info);
+    if (isset($query->view)) {
+      $response->objects = $nids;
+      return;
+    }
 
     if (count($nids) > 0) {
       $entities = entity_load($entity_type, $nids);
@@ -267,6 +271,9 @@ class Drupal_Data implements ground_IStorage {
       if (isset($_GET['print-view']) && $_GET['print-view'] == 'true')
         $response->view = $options;
     }
+
+    if (isset($query->view))
+      return $view->result;
 
     foreach ($view->result as $entity) {
       $result[] = $query->trellis->get_identity($entity);
