@@ -276,8 +276,25 @@ class Drupal_Data implements ground_IStorage {
         $response->view = $view->display['default']->display_options;
     }
 
-    if (isset($query->view))
-      return $view->result;
+    if (isset($query->view)) {
+      $result = $view->result;
+      foreach ($result as $entity) {
+        foreach($entity as $x => $property) {
+          if (is_array($property)) {
+            foreach($property as $key => $item) {
+              if(isset($item['rendered'])) {
+                unset($entity->{$x}[$key]['rendered']);
+              }
+              if(isset($item['raw'])) {
+                $property[$key] = $item['raw'];
+              }
+            }
+          }
+        }
+      }
+      return $result;
+    }
+
 
     foreach ($view->result as $entity) {
       $result[] = $query->trellis->get_identity($entity);
