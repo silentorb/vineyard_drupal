@@ -273,7 +273,7 @@ class Drupal_Data implements ground_IStorage {
     if (user_access('debug vineyard')) {
       $response->sql = (string)$view->build_info['query'];
       if (isset($_GET['print-view']) && $_GET['print-view'] == 'true')
-        $response->view = $options;
+        $response->view = $view->display['default']->display_options;
     }
 
     if (isset($query->view))
