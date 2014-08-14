@@ -228,6 +228,8 @@ class Drupal_Data implements ground_IStorage {
       if (isset($query->args)) {
         $view->set_arguments($query->args);
       }
+
+      $options = $view->display['default']->display_options;
     }
     else {
       // Create view
@@ -260,6 +262,8 @@ class Drupal_Data implements ground_IStorage {
 
       $view->display['default']->display_options = $options;
     }
+
+    module_invoke_all('vineyard_query_view', $view, $query, $info, $entity_name, $this->vineyard);
 
     $view->set_display('default');
 
