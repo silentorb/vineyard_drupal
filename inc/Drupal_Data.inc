@@ -79,7 +79,7 @@ class Drupal_Data implements ground_IStorage {
       $this->add_standard_field_filter("type", $filter, $options, $info);
     }
 
-    if (!isset($query->filters) || !is_array($query->filters))
+    if (!isset($query->filters) || !is_array($query->filters) || count($query->filters) === 0)
       return;
 
 //    $properties = $query->trellis->get_all_properties();
@@ -229,7 +229,7 @@ class Drupal_Data implements ground_IStorage {
         $view->set_arguments($query->args);
       }
 
-      $options = $view->display['default']->display_options;
+      $options = &$view->display['default']->display_options;
     }
     else {
       // Create view
@@ -253,7 +253,6 @@ class Drupal_Data implements ground_IStorage {
         'id' => $view->base_field,
       );
 
-      $this->filter_by_view($query, $options, $info, $entity_name);
       if (isset($query)) {
         $this->add_range($query, $options);
       }
@@ -262,6 +261,8 @@ class Drupal_Data implements ground_IStorage {
 
       $view->display['default']->display_options = $options;
     }
+
+    $this->filter_by_view($query, $options, $info, $entity_name);
 
     module_invoke_all('vineyard_query_view', $view, $query, $info, $entity_name, $this->vineyard);
 
@@ -294,7 +295,6 @@ class Drupal_Data implements ground_IStorage {
       }
       return $result;
     }
-
 
     foreach ($view->result as $entity) {
       $result[] = $query->trellis->get_identity($entity);
