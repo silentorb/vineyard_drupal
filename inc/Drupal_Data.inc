@@ -79,7 +79,7 @@ class Drupal_Data implements ground_IStorage {
       $this->add_standard_field_filter("type", $filter, $options, $info);
     }
 
-    if (!isset($query->filters) || !is_array($query->filters) || count($query->filters) === 0)
+    if (!isset($query->filters) || !is_array($query->filters))
       return;
 
 //    $properties = $query->trellis->get_all_properties();
@@ -107,9 +107,10 @@ class Drupal_Data implements ground_IStorage {
           $this->taxonomy($name, $filter, $options);
         }
       }
+
+      $this->add_standard_field_filter($name, $filter, $options, $info);
     }
 
-    $this->add_standard_field_filter($name, $filter, $options, $info);
   }
 
   function add_standard_field_filter($name, $filter, &$options, $info) {
@@ -259,7 +260,7 @@ class Drupal_Data implements ground_IStorage {
 
       $this->sort($query, $options, $info);
 
-      $view->display['default']->display_options = $options;
+      $view->display['default']->display_options = &$options;
     }
 
     $this->filter_by_view($query, $options, $info, $entity_name);
