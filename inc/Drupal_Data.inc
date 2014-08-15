@@ -286,7 +286,7 @@ class Drupal_Data implements ground_IStorage {
                 unset($entity->{$x}[$key]['rendered']);
               }
               if(isset($item['raw'])) {
-                $property[$key] = $item['raw'];
+                $entity->{$x}[$key] = $item['raw'];
               }
             }
           }
