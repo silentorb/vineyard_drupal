@@ -254,16 +254,16 @@ class Drupal_Data implements ground_IStorage {
         'id' => $view->base_field,
       );
 
-      if (isset($query)) {
-        $this->add_range($query, $options);
-      }
-
-      $this->sort($query, $options, $info);
-
       $view->display['default']->display_options = &$options;
     }
 
     $this->filter_by_view($query, $options, $info, $entity_name);
+
+    if (isset($query->range)) {
+      $this->add_range($query, $options);
+    }
+
+    $this->sort($query, $options, $info);
 
     module_invoke_all('vineyard_query_view', $view, $query, $info, $entity_name, $this->vineyard);
 
