@@ -57,32 +57,28 @@ class Drupal_Data implements ground_IStorage {
       $info = $entity_info['node'];
     }
 
-//    $nids = get_nids_using_entity_query($query, $entity_type, $trellis_map);
     $nids = $this->get_nids_using_view($query, $entity_name, $response, $info);
     if (isset($query->view)) {
-      $response->objects = $nids;
+      foreach ($nids as $entity) {
+        $response->objects[] = $this->post_process1($entity, $query);
+      }
+
       return;
     }
 
     if (count($nids) > 0) {
       $entities = entity_load($entity_type, $nids);
+      global $user;
       foreach ($entities as $entity) {
-        global $user;
-        foreach ($entities as $entity) {
-          if (entity_access('view', $entity_type, $entity, $user)) {
-            $response->objects[] = $this->post_process($entity, $query);
-          }
+        if (entity_access('view', $entity_type, $entity, $user)) {
+          $this->post_process1($entity, $query);
+          $response->objects[] = $this->post_process2($entity, $query);
         }
       }
     }
   }
 
-  function filter_by_view($query, &$options, $info, $entity_name) {
-    if ($info['base table'] == 'node') {
-      $filter = new stdClass();
-      $filter->value = $entity_name;
-      $this->add_standard_field_filter("type", $filter, $options, $info);
-    }
+  function filter_by_view($query, &$options, $info, $entity_name, $group = 1) {
 
     if (!isset($query->filters) || !is_array($query->filters))
       return;
@@ -90,35 +86,40 @@ class Drupal_Data implements ground_IStorage {
 //    $properties = $query->trellis->get_all_properties();
 
     foreach ($query->filters as $filter) {
-      $path = explode('.', $filter->path);
-      $name = $path[0];
-
-      if (isset($filter->operator) && $filter->operator == 'distance') {
-        $options['filters']['field_geofield_distance'] = $this->proximity($path, $filter);
-        continue;
-      }
-
-      $field_info = field_info_field($name);
-
-      if (!$field_info) {
-        $flag = flag_get_flag($name);
-        if ($flag) {
-          $this->add_flag_filter($name, $filter->value, $options, $info);
-          continue;
-        }
+      if (isset($filter->type) && $filter->type == 'or') {
+        $new_group = $this->create_group($options, 'OR');
+        $this->filter_by_view($filter, $options, $info, $entity_name, $new_group);
       }
       else {
-        if ($field_info['module'] == 'taxonomy') {
-          $this->taxonomy($name, $filter, $options);
+        $path = explode('.', $filter->path);
+        $name = $path[0];
+        
+        if (isset($filter->operator) && $filter->operator == 'distance') {
+          $options['filters']['field_geofield_distance'] = $this->proximity($path, $filter, $group);
+          continue;
         }
+
+        $field_info = field_info_field($name);
+
+        if (!$field_info) {
+          $flag = flag_get_flag($name);
+          if ($flag) {
+            $this->flag_filter($name, $filter->value, $options, $info, $group);
+            continue;
+          }
+        }
+        else {
+          if ($field_info['module'] == 'taxonomy') {
+            $this->taxonomy($name, $filter, $options, $group);
+          }
+        }
+
+        $this->add_standard_field_filter($name, $filter, $options, $info, $group);
       }
-
-      $this->add_standard_field_filter($name, $filter, $options, $info);
     }
-
   }
 
-  function add_standard_field_filter($name, $filter, &$options, $info) {
+  function add_standard_field_filter($name, $filter, &$options, $info, $group) {
 //    $filter_name = $name . (count($options['filters']) + 1);
     $value = $filter->value;
     if ($info['base table'] == 'node' && $name == 'type') {
@@ -130,8 +131,7 @@ class Drupal_Data implements ground_IStorage {
       'table' => $info['base table'],
       'field' => $name,
       'value' => is_int($value) ? (string)$value : $value,
-      'group_type' => 'group',
-      'group' => '1',
+      'group' => $group,
     );
     if (isset($filter->operator)) {
       if ($filter->operator == 'like' || $filter->operator == 'LIKE')
@@ -143,7 +143,7 @@ class Drupal_Data implements ground_IStorage {
     $options['filters'][$name] = $result;
   }
 
-  function add_flag_filter($name, $value, &$options, $info) {
+  function flag_filter($name, $value, &$options, $info, $group) {
     $relationship_name = 'flag_relationship_' . $name;
     $options['filters']['flagged'] = array(
       'id' => 'flagged',
@@ -153,8 +153,7 @@ class Drupal_Data implements ground_IStorage {
       'group_type' => 'group',
       'operator' => '=',
       'value' => $value,
-      'group' => '1',
-      'exposed' => false,
+      'group' => $group,
       'is_grouped' => true,
     );
 
@@ -169,7 +168,24 @@ class Drupal_Data implements ground_IStorage {
     );
   }
 
-  function proximity($path, $filter) {
+  function create_group(&$options, $type) {
+    if (!isset($options['filter_groups']) || !isset($options['filter_groups']['groups'])) {
+      $options['filter_groups'] = array(
+        "operator" => "AND",
+        "groups" => array(
+          "1" => "AND",
+          "2" => $type,
+        )
+      );
+      return 2;
+    }
+
+    $key = count($options['filter_groups']['groups']) + 1;
+    $options['filter_groups']['groups'][$key] = $type;
+    return $key;
+  }
+
+  function proximity($path, $filter, $group = 1) {
     $value = (object)$filter->value;
 
     $filter_value = array(
@@ -191,22 +207,7 @@ class Drupal_Data implements ground_IStorage {
       'ui_name' => '',
       'operator' => '<=',
       'value' => $filter_value,
-      'group' => '1',
-      'is_grouped' => false,
-      'group_info' => array(
-        'label' => '',
-        'description' => '',
-        'identifier' => '',
-        'optional' => true,
-        'widget' => 'select',
-        'multiple' => false,
-        'remember' => 0,
-        'default_group' => 'All',
-        'default_group_multiple' =>
-          array(),
-        'group_items' =>
-          array(),
-      ),
+      'group' => $group,
       'source' => 'manual',
       'geofield_proximity_manual' => array(
         'lat' => 0,
@@ -235,7 +236,7 @@ class Drupal_Data implements ground_IStorage {
         $view->set_arguments($query->args);
       }
 
-      $options = &$view->display['default']->display_options;
+      $options = & $view->display['default']->display_options;
     }
     else {
       // Create view
@@ -259,15 +260,16 @@ class Drupal_Data implements ground_IStorage {
         'id' => $view->base_field,
       );
 
-      $view->display['default']->display_options = &$options;
+      $view->display['default']->display_options = & $options;
     }
 
+    if ($info['base table'] == 'node' && $query->trellis->name != 'node') {
+      $filter = new stdClass();
+      $filter->value = $entity_name;
+      $this->add_standard_field_filter("type", $filter, $options, $info, 1);
+    }
     $this->filter_by_view($query, $options, $info, $entity_name);
-
-//    if (isset($query->range)) {
     $this->add_range($query, $options);
-//    }
-
     $this->sort($query, $options, $info);
 
     module_invoke_all('vineyard_query_view', $view, $query, $info, $entity_name, $this->vineyard);
@@ -286,13 +288,13 @@ class Drupal_Data implements ground_IStorage {
     if (isset($query->view)) {
       $result = $view->result;
       foreach ($result as $entity) {
-        foreach($entity as $x => $property) {
+        foreach ($entity as $x => $property) {
           if (is_array($property)) {
-            foreach($property as $key => $item) {
-              if(isset($item['rendered'])) {
+            foreach ($property as $key => $item) {
+              if (isset($item['rendered'])) {
                 unset($entity->{$x}[$key]['rendered']);
               }
-              if(isset($item['raw'])) {
+              if (isset($item['raw'])) {
                 $entity->{$x}[$key] = $item['raw'];
               }
             }
@@ -312,7 +314,12 @@ class Drupal_Data implements ground_IStorage {
 
   }
 
-  function post_process($entity, $query) {
+  function post_process1($entity, $query) {
+
+    return $entity;
+  }
+
+  function post_process2($entity, $query) {
     $this->get_links($entity, $query);
     $this->expansions($entity, $query);
 
@@ -467,7 +474,7 @@ SQL;
     }
   }
 
-  function taxonomy($path, $filter, &$options) {
+  function taxonomy($path, $filter, &$options, $group) {
     $relationship_name = 'term_relationship_' . $path[0];
     $options['relationships'][$relationship_name] = array(
       'id' => 'field_tags_tid',
@@ -487,11 +494,15 @@ SQL;
       'relationship' => $relationship_name,
       'value' => $filter->value,
       'exposed' => false,
-      'is_grouped' => false,
+      'group' => $group,
     );
     if (isset($filter->operator))
       $result->operator = $filter->operator;
 
     $options['filters'][$path[0]] = $result;
+  }
+
+  function get_field_name($property_name) {
+
   }
 }
