@@ -92,6 +92,8 @@ class Vineyard {
         $ex = $ex->e;
       }
 
+      watchdog('vineyard', print_r($ex, true), array(), WATCHDOG_ERROR);
+
       if (is_string($ex)) {
         $code = '500';
         drupal_add_http_header('Status', $code . ' Server Error');
