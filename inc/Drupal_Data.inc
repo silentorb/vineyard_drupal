@@ -13,7 +13,7 @@ class Drupal_Data implements ground_IStorage {
     $entity_name = $this->get_entity_name($trellis_name);
 
     $entity_info = entity_get_info();
-    $info = null;
+    $info = NULL;
     if (array_key_exists($entity_name, $entity_info)) {
       return $entity_info[$entity_name];
     }
@@ -25,7 +25,7 @@ class Drupal_Data implements ground_IStorage {
   function get_trellis_map($trellis_name) {
     return property_exists($this->drupal_schema, $trellis_name)
       ? $this->drupal_schema->{$trellis_name}
-      : null;
+      : NULL;
   }
 
   function get_entity_name($trellis_name) {
@@ -48,7 +48,7 @@ class Drupal_Data implements ground_IStorage {
     $response->objects = array();
     $entity_type = 'node';
     $entity_info = entity_get_info();
-    $info = null;
+    $info = NULL;
     if (array_key_exists($entity_name, $entity_info)) {
       $entity_type = $entity_name;
       $info = $entity_info[$entity_name];
@@ -68,10 +68,8 @@ class Drupal_Data implements ground_IStorage {
       $entities = entity_load($entity_type, $nids);
       foreach ($entities as $entity) {
         global $user;
-        foreach ($entities as $entity) {
-          if (entity_access('view', $entity_type, $entity, $user)) {
-            $response->objects[] = $this->post_process($entity, $query);
-          }
+        if (entity_access('view', $entity_type, $entity, $user)) {
+          $response->objects[] = $this->post_process($entity, $query);
         }
       }
     }
@@ -84,8 +82,9 @@ class Drupal_Data implements ground_IStorage {
       $this->add_standard_field_filter("type", $filter, $options, $info);
     }
 
-    if (!isset($query->filters) || !is_array($query->filters))
+    if (!isset($query->filters) || !is_array($query->filters)) {
       return;
+    }
 
 //    $properties = $query->trellis->get_all_properties();
 
@@ -129,13 +128,14 @@ class Drupal_Data implements ground_IStorage {
       'id' => $name,
       'table' => $info['base table'],
       'field' => $name,
-      'value' => is_int($value) ? (string)$value : $value,
+      'value' => is_int($value) ? (string) $value : $value,
       'group_type' => 'group',
       'group' => '1',
     );
     if (isset($filter->operator)) {
-      if ($filter->operator == 'like' || $filter->operator == 'LIKE')
+      if ($filter->operator == 'like' || $filter->operator == 'LIKE') {
         $filter->operator = 'contains';
+      }
 
       $result['operator'] = $filter->operator;
     }
@@ -154,8 +154,8 @@ class Drupal_Data implements ground_IStorage {
       'operator' => '=',
       'value' => $value,
       'group' => '1',
-      'exposed' => false,
-      'is_grouped' => true,
+      'exposed' => FALSE,
+      'is_grouped' => TRUE,
     );
 
     $options['relationships'][$relationship_name] = array(
@@ -170,17 +170,19 @@ class Drupal_Data implements ground_IStorage {
   }
 
   function proximity($path, $filter) {
-    $value = (object)$filter->value;
+    $value = (object) $filter->value;
 
     $filter_value = array(
       'unit' => '3959',
       'origin' => array(
         'lat' => $value->lat,
         'lon' => $value->lon,
-      ));
+      )
+    );
 
-    if (isset($value->max))
+    if (isset($value->max)) {
       $filter_value['distance'] = $value->max;
+    }
 
     return array(
       'id' => 'field_geofield_distance',
@@ -192,14 +194,14 @@ class Drupal_Data implements ground_IStorage {
       'operator' => '<=',
       'value' => $filter_value,
       'group' => '1',
-      'is_grouped' => false,
+      'is_grouped' => FALSE,
       'group_info' => array(
         'label' => '',
         'description' => '',
         'identifier' => '',
-        'optional' => true,
+        'optional' => TRUE,
         'widget' => 'select',
-        'multiple' => false,
+        'multiple' => FALSE,
         'remember' => 0,
         'default_group' => 'All',
         'default_group_multiple' =>
@@ -227,7 +229,7 @@ class Drupal_Data implements ground_IStorage {
       exit(0);
     }
 
-    $view = null;
+    $view = NULL;
 
     if (isset($query->view)) {
       $view = views_get_view($query->view);
@@ -278,21 +280,22 @@ class Drupal_Data implements ground_IStorage {
     $view->execute();
     $result = array();
     if (user_access('debug vineyard')) {
-      $response->sql = (string)$view->build_info['query'];
-      if (isset($_GET['print-view']) && $_GET['print-view'] == 'true')
+      $response->sql = (string) $view->build_info['query'];
+      if (isset($_GET['print-view']) && $_GET['print-view'] == 'true') {
         $response->view = $view->display['default']->display_options;
+      }
     }
 
     if (isset($query->view)) {
       $result = $view->result;
       foreach ($result as $entity) {
-        foreach($entity as $x => $property) {
+        foreach ($entity as $x => $property) {
           if (is_array($property)) {
-            foreach($property as $key => $item) {
-              if(isset($item['rendered'])) {
+            foreach ($property as $key => $item) {
+              if (isset($item['rendered'])) {
                 unset($entity->{$x}[$key]['rendered']);
               }
-              if(isset($item['raw'])) {
+              if (isset($item['raw'])) {
                 $entity->{$x}[$key] = $item['raw'];
               }
             }
@@ -351,7 +354,7 @@ class Drupal_Data implements ground_IStorage {
     && isset($trellis_map->properties)
     && property_exists($trellis_map->properties, $property->name)
       ? $trellis_map->properties->{$property->name}
-      : null;
+      : NULL;
   }
 
   function process_property($entity, $query, $property) {
@@ -363,7 +366,7 @@ class Drupal_Data implements ground_IStorage {
       }
     }
 
-    return isset($entity->{$property->name}) ? $entity->{$property->name} : null;
+    return isset($entity->{$property->name}) ? $entity->{$property->name} : NULL;
   }
 
   function expansions($entity, $query) {
@@ -378,7 +381,7 @@ class Drupal_Data implements ground_IStorage {
           $sql = 'SELECT link_path FROM `menu_links` where plid = :plid';
           $rows = db_query($sql, array('plid' => $tree['mlid']))->fetchAll();
           foreach ($rows as $key => $row) {
-            $rows[$key] = (int)preg_replace('/[^\d]+/', '', $row->link_path);
+            $rows[$key] = (int) preg_replace('/[^\d]+/', '', $row->link_path);
           }
           $children = entity_load('node', $rows);
           $rows = array();
@@ -389,8 +392,9 @@ class Drupal_Data implements ground_IStorage {
         }
         else {
           $property = $properties->h[$expansion];
-          if (!isset($property))
+          if (!isset($property)) {
             throw new Exception("There is no property defined for " . $query->trellis->name . "." . $expansion);
+          }
 
           $info = $this->get_entity_info($property->other_trellis->name);
           $entity_name = $info['base table'] == 'node'
@@ -418,8 +422,9 @@ class Drupal_Data implements ground_IStorage {
   }
 
   private function sort($query, &$options, $info) {
-    if (!isset($query->sorts) || !is_array($query->sorts))
+    if (!isset($query->sorts) || !is_array($query->sorts)) {
       return;
+    }
 
     foreach ($query->sorts as $sort) {
       $dir = isset($sort->dir) ? $sort->dir : 'DESC';
@@ -441,11 +446,13 @@ class Drupal_Data implements ground_IStorage {
   function get_links($entity, $query) {
     $properties = $query->trellis->get_all_properties();
     foreach ($properties->h as $property) {
-      if (isset($query->properties) && !in_array($property->name, $query->properties))
+      if (isset($query->properties) && !in_array($property->name, $query->properties)) {
         continue;
+      }
 
-      if (!isset($property->other_property))
+      if (!isset($property->other_property)) {
         continue;
+      }
 
       if ($property->other_property->type == 4) { // 3: Reference
         $base_name = $property->other_property->name;
@@ -458,9 +465,10 @@ SQL;
 
         $id = $query->trellis->get_identity($entity);
         $result = db_query($sql, array(':id' => $id));
-        $value = (int)$result->fetchField(0);
-        if (!$value)
-          $value = null;
+        $value = (int) $result->fetchField(0);
+        if (!$value) {
+          $value = NULL;
+        }
 
         $entity->{$property->name} = $value;
       }
@@ -486,11 +494,12 @@ SQL;
       'field' => $key,
       'relationship' => $relationship_name,
       'value' => $filter->value,
-      'exposed' => false,
-      'is_grouped' => false,
+      'exposed' => FALSE,
+      'is_grouped' => FALSE,
     );
-    if (isset($filter->operator))
+    if (isset($filter->operator)) {
       $result->operator = $filter->operator;
+    }
 
     $options['filters'][$path[0]] = $result;
   }
